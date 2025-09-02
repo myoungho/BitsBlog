@@ -38,7 +38,7 @@ namespace BitsBlog.WebApi.Tests
         {
             var post = new Post { Id = 1, Title = "New", Content = "Body", Created = DateTime.UtcNow };
             var repo = new Mock<IRepository<Post>>();
-            repo.Setup(r => r.AddAsync(It.IsAny<Post>())).ReturnsAsync(post);
+            repo.Setup(r => r.InsertAsync(It.IsAny<Post>())).ReturnsAsync(post);
             var service = new PostService(repo.Object);
             var controller = new PostsController(service);
             var request = new PostsController.CreatePostRequest(post.Title, post.Content);

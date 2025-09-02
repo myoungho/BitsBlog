@@ -1,43 +1,173 @@
+using BitsBlog.Application.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using BitsBlog.Application.Interfaces;
-using Microsoft.EntityFrameworkCore;
 
 namespace BitsBlog.Infrastructure.Repositories
 {
     public class Repository<T> : IRepository<T> where T : class
     {
         private readonly BitsBlogDbContext _context;
-        private readonly DbSet<T> _set;
 
-        public Repository(BitsBlogDbContext context)
+        public DatabaseFacade Database
         {
-            _context = context;
-            _set = _context.Set<T>();
+            get => _context.Database;
         }
 
-        public async Task<T> AddAsync(T entity)
+        private DbSet<T> _entities;
+        protected DbSet<T> Entities
         {
-            _set.Add(entity);
-            await _context.SaveChangesAsync();
+            get
+            {
+                if (_entities == null)
+                    _entities = _context.Set<T>();
+
+                return _entities;
+            }
+        }
+
+
+        public virtual IQueryable<T> Table
+        {
+            get
+            {
+                return Entities;
+            }
+        }
+
+        public virtual IQueryable<T> TableNoTracking
+        {
+            get
+            {
+                return Entities.AsNoTracking();
+            }
+        }
+
+        public Repository(BitsBlogDbContext ctx)
+        {
+            _context = ctx;
+        }
+
+        public virtual T GetById(int id)
+        {
+            return Entities.Find(id);
+        }
+
+
+        public virtual IQueryable<D> IQueryable<D>(T entry, Expression<Func<T, D>> prop) where D : class
+        {
+            return _context.Entry(entry).Reference(prop).Query();
+        }
+
+        public virtual void LoadReference(T entry, params Expression<Func<T, object>>[] props)
+        {
+            foreach (var propExp in props)
+            {
+                _context.Entry(entry).Reference(propExp).Load();
+            }
+        }
+
+        public virtual async Task LoadReferenceAsync(T entry, params Expression<Func<T, object>>[] props)
+        {
+            List<Task> tasks = new();
+            foreach (var propExp in props)
+            {
+                Task task = _context.Entry(entry).Reference(propExp).LoadAsync();
+                tasks.Add(task);
+            }
+            await Task.WhenAll(tasks);
+        }
+
+        public virtual IQueryable<D> IQueryable<D>(T entry, Expression<Func<T, IEnumerable<D>>> prop) where D : class
+        {
+            return _context.Entry(entry).Collection(prop).Query();
+        }
+
+        public virtual void LoadCollection(T entry, params Expression<Func<T, IEnumerable<object>>>[] props)
+        {
+            foreach (var propExp in props)
+            {
+                _context.Entry(entry).Collection(propExp).Load();
+            }
+        }
+
+        public virtual async Task LoadCollectionAsync(T entry, params Expression<Func<T, IEnumerable<object>>>[] props)
+        {
+            List<Task> tasks = new();
+            foreach (var propExp in props)
+            {
+                Task task = _context.Entry(entry).Collection(propExp).LoadAsync();
+                tasks.Add(task);
+            }
+            await Task.WhenAll(tasks);
+        }
+
+        public async Task<T> GetByIdAsync(int id)
+        {
+            return await Entities.FindAsync(id);
+        }
+
+        public void Insert(T entity)
+        {
+            Entities.Add(entity);
+        }
+
+        public async Task<T> InsertAsync(T entity)
+        {
+            await Entities.AddAsync(entity);
             return entity;
+        }
+
+        public IEnumerable<T> GetAll()
+        {
+            return Entities.ToList();
         }
 
         public async Task<IEnumerable<T>> GetAllAsync()
         {
-            return await _set.ToListAsync();
+            return await Entities.ToListAsync();
         }
 
-        public async Task<T?> GetByIdAsync(int id)
+        public void Update(T entity)
         {
-            return await _set.FindAsync(id);
+            //Entities.Update(entity);
+            throw new NotImplementedException();
         }
 
-        public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
+        public Task UpdateAsync(T entity)
         {
-            return await _set.Where(predicate).ToListAsync();
+            throw new NotImplementedException();
         }
+
+        public void SaveDbContextChanges()
+        {
+            _context.SaveChanges();
+        }
+
+        public async Task SaveDbContextChangesAsync()
+        {
+            await _context.SaveChangesAsync();
+        }
+
+        public void Delete(T entity)
+        {
+            Entities.Remove(entity);
+        }
+
+        public virtual EntityState GetEntityState(object entry)
+        {
+            return _context.Entry(entry).State;
+        }
+
+        public IQueryable<T> Execute(FormattableString query)
+        {
+            return Entities.FromSqlInterpolated(query);
+        }
+
+
+
     }
 }
