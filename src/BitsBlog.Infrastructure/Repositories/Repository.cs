@@ -16,9 +16,9 @@ namespace BitsBlog.Infrastructure.Repositories
 
         protected DbSet<T> Entities => _context.Set<T>();
 
-        public virtual IQueryable<T> Table => Entities;
+        public virtual IQueryable<T> AsTracking() => Entities.AsTracking<T>();
 
-        public virtual IQueryable<T> TableNoTracking => Entities.AsNoTracking();
+        public virtual IQueryable<T> AsNoTracking() => Entities.AsNoTracking<T>();
 
         public Repository(BitsBlogDbContext ctx)
         {
@@ -64,7 +64,6 @@ namespace BitsBlog.Infrastructure.Repositories
         public virtual EntityState GetEntityState(object entry) => _context.Entry(entry).State;
 
         public IQueryable<T> Execute(FormattableString query) => Entities.FromSqlInterpolated(query);
-
 
 
     }

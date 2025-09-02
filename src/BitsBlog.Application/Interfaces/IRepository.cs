@@ -28,9 +28,9 @@ namespace BitsBlog.Application.Interfaces
 
         Task DeleteAsync(T entity);
 
-        IQueryable<T> Table { get; }
+        IQueryable<T> AsTracking();
 
-        IQueryable<T> TableNoTracking { get; }
+        IQueryable<T> AsNoTracking();
 
         Task SaveDbContextChangesAsync();
 
