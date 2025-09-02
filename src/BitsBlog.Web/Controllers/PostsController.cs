@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using BitsBlog.Application.DTOs;
 using BitsBlog.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,6 +13,13 @@ namespace BitsBlog.Web.Controllers
         public PostsController(IHttpClientFactory clientFactory)
         {
             _clientFactory = clientFactory;
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            var client = _clientFactory.CreateClient("api");
+            var posts = await client.GetFromJsonAsync<IEnumerable<PostDto>>("posts");
+            return View(posts);
         }
 
         public IActionResult Create() => View();

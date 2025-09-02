@@ -9,7 +9,7 @@ export function PostsList({ posts }: PostsListProps) {
     <div>
       {posts.map(p => (
         <article key={p.id}>
-          <h3>{p.title}</h3>
+          <h3>{p.title} ({new Date(p.created).toLocaleString()})</h3>
           <p>{p.content}</p>
         </article>
       ))}
