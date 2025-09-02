@@ -9,8 +9,8 @@ namespace BitsBlog.Application.Services
 {
     public class PostService : IPostService
     {
-        private readonly IPostRepository _repository;
-        public PostService(IPostRepository repository)
+        private readonly IRepository<Post> _repository;
+        public PostService(IRepository<Post> repository)
         {
             _repository = repository;
         }
