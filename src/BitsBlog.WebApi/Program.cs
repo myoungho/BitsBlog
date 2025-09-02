@@ -27,7 +27,12 @@ if (app.Environment.IsDevelopment())
         c.RoutePrefix = string.Empty; // Swagger UI를 루트("/")에서 실행되도록
     });
 }
-
+app.UseCors(builder =>
+    builder
+        .WithOrigins("http://localhost:5173")
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+);
 app.UseRouting();
 app.UseAuthorization();
 app.MapControllers();

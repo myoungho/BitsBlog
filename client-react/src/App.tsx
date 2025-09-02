@@ -3,6 +3,7 @@ import { usePosts } from "./hooks/usePosts";
 
 export default function App() {
   const posts = usePosts();
+  console.log(posts); // posts 값 확인
 
   return (
     <div>
