@@ -4,22 +4,22 @@ ASP.NET Core 8 WebAPI + Entity Framework + React + Bits UI 예제. 클린 아키
 
 ## 프로젝트 구조
 
-- `src/Domain` - 도메인 엔터티
-- `src/Application` - 서비스 및 인터페이스
-- `src/Infrastructure` - EF Core DbContext 및 리포지토리
-- `src/WebApi` - REST API
-- `src/MvcClient` - ASP.NET Core MVC 클라이언트
+- `src/BitsBlog.Domain` - 도메인 엔터티
+- `src/BitsBlog.Application` - 서비스 및 인터페이스
+- `src/BitsBlog.Infrastructure` - EF Core DbContext 및 리포지토리
+- `src/BitsBlog.WebApi` - REST API
+- `src/BitsBlog.Web` - ASP.NET Core MVC 클라이언트
 - `client-react` - React + Bits UI 클라이언트 샘플
 
 ## 실행
 
 ```bash
 # Web API
-cd src/WebApi
+cd src/BitsBlog.WebApi
 # dotnet run
 
 # MVC 클라이언트
-cd src/MvcClient
+cd src/BitsBlog.Web
 # dotnet run
 
 # React 클라이언트 (예: Vite 등으로 빌드)

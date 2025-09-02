@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using BitsBlog.Application.DTOs;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BitsBlog.MvcClient.Controllers
+namespace BitsBlog.Web.Controllers
 {
     public class HomeController : Controller
     {

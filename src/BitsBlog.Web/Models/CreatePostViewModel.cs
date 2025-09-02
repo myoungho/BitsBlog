@@ -1,4 +1,4 @@
-namespace BitsBlog.MvcClient.Models
+namespace BitsBlog.Web.Models
 {
     public class CreatePostViewModel
     {

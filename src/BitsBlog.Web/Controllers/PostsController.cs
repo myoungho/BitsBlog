@@ -1,9 +1,9 @@
 using System.Net.Http.Json;
 using System.Threading.Tasks;
-using BitsBlog.MvcClient.Models;
+using BitsBlog.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BitsBlog.MvcClient.Controllers
+namespace BitsBlog.Web.Controllers
 {
     public class PostsController : Controller
     {
