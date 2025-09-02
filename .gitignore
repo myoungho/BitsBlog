@@ -1,0 +1,21 @@
+# .NET build artifacts
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# ASP.NET Core generated files
+appsettings.Development.json
+
+# Node / React
+node_modules/
+dist/
+
+# Logs
+*.log
+
+# Misc
+.env
