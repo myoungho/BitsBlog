@@ -1,4 +1,4 @@
-using BitsBlog.Application.Interfaces;
+﻿using BitsBlog.Application.Interfaces;
 using BitsBlog.Application.Services;
 using BitsBlog.Infrastructure;
 using BitsBlog.Infrastructure.Repositories;
@@ -18,16 +18,14 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<BitsBlogDbContext>();
-    db.Database.Migrate();
-}
-
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+        c.RoutePrefix = string.Empty; // Swagger UI를 루트("/")에서 실행되도록
+    });
 }
 
 app.UseRouting();
