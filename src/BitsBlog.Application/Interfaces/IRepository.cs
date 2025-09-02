@@ -23,39 +23,16 @@ namespace BitsBlog.Application.Interfaces
         T GetById(int id);
         Task<T> GetByIdAsync(int id);
 
-        //T GetSingleOrDefault(Expression<Func<T, bool>> where);
-        //Task<T> GetSingleOrDefaultAsync(Expression<Func<T, bool>> where);
-
         IEnumerable<T> GetAll();
         Task<IEnumerable<T>> GetAllAsync();
 
-        //IEnumerable<T> GetAllIncludes(params Expression<Func<T, object>>[] includes);
-        //Task<IEnumerable<T>> GetAllIncludesAsync(params Expression<Func<T, object>>[] includes);
-
-        //IEnumerable<T> Get(Expression<Func<T, bool>> where);
-        //Task<IEnumerable<T>> GetAsync(Expression<Func<T, bool>> where);
-
         void Insert(T entity);
         Task<T> InsertAsync(T entity);
-
-        //void Insert(IEnumerable<T> entities);
-        //Task InsertAsync(IEnumerable<T> entities);
 
         void Update(T entity);
         Task UpdateAsync(T entity);
 
         void Delete(T entity);
-        // Task DeleteAsync(T entity);
-
-        //void Delete(Expression<Func<T, bool>> where);
-        //Task DeleteAsync(Expression<Func<T, bool>> where);
-
-        //void Delete(IEnumerable<T> entities);
-        //Task DeleteAsync(IEnumerable<T> entities);
-
-
-        //void Replace(IEnumerable<T> removed, IEnumerable<T> added);
-        //Task ReplaceAsync(IEnumerable<T> removed, IEnumerable<T> added);
 
         IQueryable<T> Table { get; }
 
@@ -66,6 +43,5 @@ namespace BitsBlog.Application.Interfaces
         Task SaveDbContextChangesAsync();
 
         IQueryable<T> Execute(FormattableString query);
-
     }
 }
