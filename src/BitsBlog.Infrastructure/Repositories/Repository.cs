@@ -12,55 +12,24 @@ namespace BitsBlog.Infrastructure.Repositories
     {
         private readonly BitsBlogDbContext _context;
 
-        public DatabaseFacade Database
-        {
-            get => _context.Database;
-        }
+        public DatabaseFacade Database => _context.Database;
 
-        private DbSet<T> _entities;
-        protected DbSet<T> Entities
-        {
-            get
-            {
-                if (_entities == null)
-                    _entities = _context.Set<T>();
+        protected DbSet<T> Entities => _context.Set<T>();
 
-                return _entities;
-            }
-        }
+        public virtual IQueryable<T> Table => Entities;
 
-
-        public virtual IQueryable<T> Table
-        {
-            get
-            {
-                return Entities;
-            }
-        }
-
-        public virtual IQueryable<T> TableNoTracking
-        {
-            get
-            {
-                return Entities.AsNoTracking();
-            }
-        }
+        public virtual IQueryable<T> TableNoTracking => Entities.AsNoTracking();
 
         public Repository(BitsBlogDbContext ctx)
         {
             _context = ctx;
         }
 
-        public virtual T GetById(int id)
-        {
-            return Entities.Find(id);
-        }
+        public virtual T GetById(int id) => Entities.Find(id);
 
 
-        public virtual IQueryable<D> IQueryable<D>(T entry, Expression<Func<T, D>> prop) where D : class
-        {
-            return _context.Entry(entry).Reference(prop).Query();
-        }
+        public virtual IQueryable<D> IQueryable<D>(T entry, Expression<Func<T, D>> prop) where D : class =>
+            _context.Entry(entry).Reference(prop).Query();
 
         public virtual void LoadReference(T entry, params Expression<Func<T, object>>[] props)
         {
@@ -70,21 +39,11 @@ namespace BitsBlog.Infrastructure.Repositories
             }
         }
 
-        public virtual async Task LoadReferenceAsync(T entry, params Expression<Func<T, object>>[] props)
-        {
-            List<Task> tasks = new();
-            foreach (var propExp in props)
-            {
-                Task task = _context.Entry(entry).Reference(propExp).LoadAsync();
-                tasks.Add(task);
-            }
-            await Task.WhenAll(tasks);
-        }
+        public virtual async Task LoadReferenceAsync(T entry, params Expression<Func<T, object>>[] props) =>
+            await Task.WhenAll(props.Select(propExp => _context.Entry(entry).Reference(propExp).LoadAsync()));
 
-        public virtual IQueryable<D> IQueryable<D>(T entry, Expression<Func<T, IEnumerable<D>>> prop) where D : class
-        {
-            return _context.Entry(entry).Collection(prop).Query();
-        }
+        public virtual IQueryable<D> IQueryable<D>(T entry, Expression<Func<T, IEnumerable<D>>> prop) where D : class =>
+            _context.Entry(entry).Collection(prop).Query();
 
         public virtual void LoadCollection(T entry, params Expression<Func<T, IEnumerable<object>>>[] props)
         {
@@ -94,26 +53,12 @@ namespace BitsBlog.Infrastructure.Repositories
             }
         }
 
-        public virtual async Task LoadCollectionAsync(T entry, params Expression<Func<T, IEnumerable<object>>>[] props)
-        {
-            List<Task> tasks = new();
-            foreach (var propExp in props)
-            {
-                Task task = _context.Entry(entry).Collection(propExp).LoadAsync();
-                tasks.Add(task);
-            }
-            await Task.WhenAll(tasks);
-        }
+        public virtual async Task LoadCollectionAsync(T entry, params Expression<Func<T, IEnumerable<object>>>[] props) =>
+            await Task.WhenAll(props.Select(propExp => _context.Entry(entry).Collection(propExp).LoadAsync()));
 
-        public async Task<T> GetByIdAsync(int id)
-        {
-            return await Entities.FindAsync(id);
-        }
+        public async Task<T> GetByIdAsync(int id) => await Entities.FindAsync(id);
 
-        public void Insert(T entity)
-        {
-            Entities.Add(entity);
-        }
+        public void Insert(T entity) => Entities.Add(entity);
 
         public async Task<T> InsertAsync(T entity)
         {
@@ -121,51 +66,27 @@ namespace BitsBlog.Infrastructure.Repositories
             return entity;
         }
 
-        public IEnumerable<T> GetAll()
-        {
-            return Entities.ToList();
-        }
+        public IEnumerable<T> GetAll() => Entities.ToList();
 
-        public async Task<IEnumerable<T>> GetAllAsync()
-        {
-            return await Entities.ToListAsync();
-        }
+        public async Task<IEnumerable<T>> GetAllAsync() => await Entities.ToListAsync();
 
-        public void Update(T entity)
-        {
-            //Entities.Update(entity);
-            throw new NotImplementedException();
-        }
+        public void Update(T entity) => Entities.Update(entity);
 
         public Task UpdateAsync(T entity)
         {
-            throw new NotImplementedException();
+            Entities.Update(entity);
+            return Task.CompletedTask;
         }
 
-        public void SaveDbContextChanges()
-        {
-            _context.SaveChanges();
-        }
+        public void SaveDbContextChanges() => _context.SaveChanges();
 
-        public async Task SaveDbContextChangesAsync()
-        {
-            await _context.SaveChangesAsync();
-        }
+        public async Task SaveDbContextChangesAsync() => await _context.SaveChangesAsync();
 
-        public void Delete(T entity)
-        {
-            Entities.Remove(entity);
-        }
+        public void Delete(T entity) => Entities.Remove(entity);
 
-        public virtual EntityState GetEntityState(object entry)
-        {
-            return _context.Entry(entry).State;
-        }
+        public virtual EntityState GetEntityState(object entry) => _context.Entry(entry).State;
 
-        public IQueryable<T> Execute(FormattableString query)
-        {
-            return Entities.FromSqlInterpolated(query);
-        }
+        public IQueryable<T> Execute(FormattableString query) => Entities.FromSqlInterpolated(query);
 
 
 
