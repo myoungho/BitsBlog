@@ -9,7 +9,7 @@ ASP.NET Core 9 WebAPI + Entity Framework + React + Typescript 예제. 클린 아
 - `src/BitsBlog.Infrastructure` - EF Core DbContext 및 리포지토리
 - `src/BitsBlog.WebApi` - REST API
 - `src/BitsBlog.Web` - ASP.NET Core MVC 클라이언트
-- `client-react` - React + Bits UI 클라이언트 샘플
+- `client-react` - React + Typescript 클라이언트 샘플
 
 ## 실행
 
