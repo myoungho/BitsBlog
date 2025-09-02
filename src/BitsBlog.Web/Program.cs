@@ -5,7 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient("api", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5000/api/");
+    client.BaseAddress = new Uri("http://localhost:52015/api/");
 });
 
 var app = builder.Build();
