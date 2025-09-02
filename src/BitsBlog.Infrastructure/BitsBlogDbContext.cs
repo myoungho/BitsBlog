@@ -8,5 +8,6 @@ namespace BitsBlog.Infrastructure
         public BitsBlogDbContext(DbContextOptions<BitsBlogDbContext> options) : base(options) { }
 
         public DbSet<Post> Posts => Set<Post>();
+        public DbSet<Comment> Comments => Set<Comment>();
     }
 }

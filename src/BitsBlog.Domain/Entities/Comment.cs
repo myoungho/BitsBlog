@@ -1,15 +1,14 @@
 using System;
-using System.Collections.Generic;
 
 namespace BitsBlog.Domain.Entities
 {
-    public class Post
+    public class Comment
     {
         public int Id { get; set; }
-        public string Title { get; set; } = string.Empty;
+        public int PostId { get; set; }
         public string Content { get; set; } = string.Empty;
         public DateTime Created { get; set; } = DateTime.UtcNow;
 
-        public ICollection<Comment> Comments { get; set; } = new List<Comment>();
+        public Post Post { get; set; } = null!;
     }
 }
