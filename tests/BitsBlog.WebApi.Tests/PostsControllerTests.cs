@@ -23,7 +23,7 @@ namespace BitsBlog.WebApi.Tests
                 new Post { Id = 1, Title = "Title1", Content = "Content1", Created = DateTime.UtcNow },
                 new Post { Id = 2, Title = "Title2", Content = "Content2", Created = DateTime.UtcNow }
             };
-            var repo = new Mock<IPostRepository>();
+            var repo = new Mock<IRepository<Post>>();
             repo.Setup(r => r.GetAllAsync()).ReturnsAsync(posts);
             var service = new PostService(repo.Object);
             var controller = new PostsController(service);
@@ -37,7 +37,7 @@ namespace BitsBlog.WebApi.Tests
         public async Task Post_ReturnsCreatedPost()
         {
             var post = new Post { Id = 1, Title = "New", Content = "Body", Created = DateTime.UtcNow };
-            var repo = new Mock<IPostRepository>();
+            var repo = new Mock<IRepository<Post>>();
             repo.Setup(r => r.AddAsync(It.IsAny<Post>())).ReturnsAsync(post);
             var service = new PostService(repo.Object);
             var controller = new PostsController(service);

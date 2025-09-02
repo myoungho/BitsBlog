@@ -9,15 +9,15 @@ namespace BitsBlog.Application.Services
 {
     public class CommentService : ICommentService
     {
-        private readonly ICommentRepository _repository;
-        public CommentService(ICommentRepository repository)
+        private readonly IRepository<Comment> _repository;
+        public CommentService(IRepository<Comment> repository)
         {
             _repository = repository;
         }
 
         public async Task<IEnumerable<CommentDto>> GetCommentsByPostIdAsync(int postId)
         {
-            var comments = await _repository.GetByPostIdAsync(postId);
+            var comments = await _repository.FindAsync(c => c.PostId == postId);
             return comments.Select(c => new CommentDto(c.Id, c.PostId, c.Content, c.Created));
         }
 
