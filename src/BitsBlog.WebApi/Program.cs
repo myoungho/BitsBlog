@@ -9,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-var connectionString = "Server=(local);Database=BitsBlogDb;User Id=sa;Password=123456;TrustServerCertificate=True";
+var connectionString = "Server=(local);Database=BitsBlog;User Id=sa;Password=123456;TrustServerCertificate=True";
 builder.Services.AddDbContext<BitsBlogDbContext>(opt =>
     opt.UseSqlServer(connectionString));
 builder.Services.AddScoped<IPostRepository, PostRepository>();
