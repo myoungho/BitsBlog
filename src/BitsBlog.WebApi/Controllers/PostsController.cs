@@ -10,8 +10,8 @@ namespace BitsBlog.WebApi.Controllers
     [Route("api/[controller]")]
     public class PostsController : ControllerBase
     {
-        private readonly PostService _service;
-        public PostsController(PostService service)
+        private readonly IPostService _service;
+        public PostsController(IPostService service)
         {
             _service = service;
         }

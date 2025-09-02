@@ -7,7 +7,7 @@ using BitsBlog.Domain.Entities;
 
 namespace BitsBlog.Application.Services
 {
-    public class CommentService
+    public class CommentService : ICommentService
     {
         private readonly ICommentRepository _repository;
         public CommentService(ICommentRepository repository)
