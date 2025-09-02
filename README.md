@@ -1,6 +1,6 @@
 # BitsBlog
 
-ASP.NET Core 8 WebAPI + Entity Framework + React + Bits UI 예제. 클린 아키텍처를 기반으로 한 간단한 게시판(BBS) 구현입니다.
+ASP.NET Core 9 WebAPI + Entity Framework + React + Typescript 예제. 클린 아키텍처를 기반으로 한 간단한 Blog 구현입니다.
 
 ## 프로젝트 구조
 
