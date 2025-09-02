@@ -24,7 +24,10 @@ cd src/BitsBlog.Web
 
 # React 클라이언트 (예: Vite 등으로 빌드)
 cd client-react
+# cp ../.env.example .env # 환경 변수 설정
 # npm install && npm run dev
 ```
+
+`.env` 파일의 `VITE_API_URL` 값은 백엔드 Web API의 기본 주소를 가리켜야 합니다.
 
 현재 환경에서는 .NET SDK가 설치되어 있지 않으므로 `dotnet` 명령이 실행되지 않을 수 있습니다.
