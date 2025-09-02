@@ -1,12 +1,12 @@
 {
   "profiles": {
-    "WebApi": {
+    "BitsBlog.Web": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "https://localhost:52015;http://localhost:52016"
+      "applicationUrl": "https://localhost:52013;http://localhost:52014"
     }
   }
 }
