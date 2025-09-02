@@ -25,19 +25,8 @@ namespace BitsBlog.Infrastructure.Repositories
             _context = ctx;
         }
 
-        public virtual T GetById(int id) => Entities.Find(id);
-
-
         public virtual IQueryable<D> IQueryable<D>(T entry, Expression<Func<T, D>> prop) where D : class =>
             _context.Entry(entry).Reference(prop).Query();
-
-        public virtual void LoadReference(T entry, params Expression<Func<T, object>>[] props)
-        {
-            foreach (var propExp in props)
-            {
-                _context.Entry(entry).Reference(propExp).Load();
-            }
-        }
 
         public virtual async Task LoadReferenceAsync(T entry, params Expression<Func<T, object>>[] props) =>
             await Task.WhenAll(props.Select(propExp => _context.Entry(entry).Reference(propExp).LoadAsync()));
@@ -45,20 +34,10 @@ namespace BitsBlog.Infrastructure.Repositories
         public virtual IQueryable<D> IQueryable<D>(T entry, Expression<Func<T, IEnumerable<D>>> prop) where D : class =>
             _context.Entry(entry).Collection(prop).Query();
 
-        public virtual void LoadCollection(T entry, params Expression<Func<T, IEnumerable<object>>>[] props)
-        {
-            foreach (var propExp in props)
-            {
-                _context.Entry(entry).Collection(propExp).Load();
-            }
-        }
-
         public virtual async Task LoadCollectionAsync(T entry, params Expression<Func<T, IEnumerable<object>>>[] props) =>
             await Task.WhenAll(props.Select(propExp => _context.Entry(entry).Collection(propExp).LoadAsync()));
 
         public async Task<T> GetByIdAsync(int id) => await Entities.FindAsync(id);
-
-        public void Insert(T entity) => Entities.Add(entity);
 
         public async Task<T> InsertAsync(T entity)
         {
@@ -66,11 +45,7 @@ namespace BitsBlog.Infrastructure.Repositories
             return entity;
         }
 
-        public IEnumerable<T> GetAll() => Entities.ToList();
-
         public async Task<IEnumerable<T>> GetAllAsync() => await Entities.ToListAsync();
-
-        public void Update(T entity) => Entities.Update(entity);
 
         public Task UpdateAsync(T entity)
         {
@@ -78,11 +53,13 @@ namespace BitsBlog.Infrastructure.Repositories
             return Task.CompletedTask;
         }
 
-        public void SaveDbContextChanges() => _context.SaveChanges();
-
         public async Task SaveDbContextChangesAsync() => await _context.SaveChangesAsync();
 
-        public void Delete(T entity) => Entities.Remove(entity);
+        public Task DeleteAsync(T entity)
+        {
+            Entities.Remove(entity);
+            return Task.CompletedTask;
+        }
 
         public virtual EntityState GetEntityState(object entry) => _context.Entry(entry).State;
 
