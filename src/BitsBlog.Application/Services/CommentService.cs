@@ -26,6 +26,7 @@ namespace BitsBlog.Application.Services
         {
             var comment = new Comment { PostId = postId, Content = content };
             var created = await _repository.InsertAsync(comment);
+            await _repository.SaveDbContextChangesAsync();
             return new CommentDto(created.Id, created.PostId, created.Content, created.Created);
         }
     }

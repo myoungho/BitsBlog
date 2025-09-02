@@ -24,6 +24,7 @@ namespace BitsBlog.Application.Services
         public async Task<PostDto> CreateAsync(string title, string content)
         {
             var post = await _repository.InsertAsync(new Post { Title = title, Content = content });
+            await _repository.SaveDbContextChangesAsync();
             return new PostDto(post.Id, post.Title, post.Content, post.Created);
         }
     }
