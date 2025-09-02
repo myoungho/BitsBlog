@@ -11,7 +11,7 @@ export function usePosts() {
   const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
-    fetch("https://localhost:52015/api/posts")
+    fetch(`${import.meta.env.VITE_API_URL}/api/posts`)
       .then((res) => res.json() as Promise<Post[]>)
       .then(setPosts);
   }, []);
