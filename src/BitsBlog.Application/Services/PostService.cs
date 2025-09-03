@@ -45,5 +45,14 @@ namespace BitsBlog.Application.Services
             await _repository.SaveDbContextChangesAsync();
             return new PostDto(post.Id, post.Title, post.Content, post.Created);
         }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var post = await _repository.GetByIdAsync(id);
+            if (post is null) return false;
+            await _repository.DeleteAsync(post);
+            await _repository.SaveDbContextChangesAsync();
+            return true;
+        }
     }
 }

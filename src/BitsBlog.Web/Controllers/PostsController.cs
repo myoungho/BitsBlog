@@ -57,5 +57,17 @@ namespace BitsBlog.Web.Controllers
             res.EnsureSuccessStatusCode();
             return RedirectToAction("Index", "Home");
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var client = _clientFactory.CreateClient("api");
+            var res = await client.DeleteAsync($"posts/{id}");
+            if (res.StatusCode == System.Net.HttpStatusCode.NotFound)
+                return NotFound();
+            res.EnsureSuccessStatusCode();
+            return RedirectToAction("Index", "Home");
+        }
     }
 }

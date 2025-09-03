@@ -147,6 +147,42 @@ namespace BitsBlog.Web.Tests
             Assert.IsType<NotFoundResult>(result);
         }
 
+        [Fact]
+        public async Task Delete_Post_Valid_RedirectsToHomeIndex()
+        {
+            var handler = new FakeHttpMessageHandler(new HttpResponseMessage(HttpStatusCode.NoContent));
+            var client = new HttpClient(handler)
+            {
+                BaseAddress = new Uri("http://localhost/api/")
+            };
+            var factory = new Mock<IHttpClientFactory>();
+            factory.Setup(f => f.CreateClient("api")).Returns(client);
+            var controller = new PostsController(factory.Object);
+
+            var result = await controller.Delete(1);
+
+            var redirect = Assert.IsType<RedirectToActionResult>(result);
+            Assert.Equal("Index", redirect.ActionName);
+            Assert.Equal("Home", redirect.ControllerName);
+        }
+
+        [Fact]
+        public async Task Delete_Post_NotFound_ReturnsNotFound()
+        {
+            var handler = new FakeHttpMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound));
+            var client = new HttpClient(handler)
+            {
+                BaseAddress = new Uri("http://localhost/api/")
+            };
+            var factory = new Mock<IHttpClientFactory>();
+            factory.Setup(f => f.CreateClient("api")).Returns(client);
+            var controller = new PostsController(factory.Object);
+
+            var result = await controller.Delete(999);
+
+            Assert.IsType<NotFoundResult>(result);
+        }
+
         private class FakeHttpMessageHandler : HttpMessageHandler
         {
             private readonly HttpResponseMessage _response;

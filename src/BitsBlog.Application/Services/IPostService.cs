@@ -10,5 +10,6 @@ namespace BitsBlog.Application.Services
         Task<PostDto> CreateAsync(string title, string content);
         Task<PostDto?> GetByIdAsync(int id);
         Task<PostDto?> UpdateAsync(int id, string title, string content);
+        Task<bool> DeleteAsync(int id);
     }
 }

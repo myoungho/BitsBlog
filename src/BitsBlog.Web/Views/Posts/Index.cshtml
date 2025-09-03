@@ -16,6 +16,9 @@ else
             <h3>@post.Title (@post.Created.ToLocalTime())</h3>
             <p>@post.Content</p>
             <a href="/Posts/Edit/@post.Id">수정</a>
+            <form asp-action="Delete" asp-route-id="@post.Id" method="post" style="display:inline;margin-left:8px;">
+                <button type="submit" onclick="return confirm('삭제하시겠습니까?');">삭제</button>
+            </form>
         </li>
     }
     </ul>

@@ -115,5 +115,34 @@ namespace BitsBlog.WebApi.Tests
 
             Assert.IsType<NotFoundResult>(res.Result);
         }
+
+        [Fact]
+        public async Task Delete_NoContent_WhenFound()
+        {
+            var post = new Post { Id = 11, Title = "t", Content = "c", Created = DateTime.UtcNow };
+            var repo = new Mock<IRepository<Post>>();
+            repo.Setup(r => r.GetByIdAsync(post.Id)).ReturnsAsync(post);
+            repo.Setup(r => r.DeleteAsync(post)).Returns(Task.CompletedTask);
+            repo.Setup(r => r.SaveDbContextChangesAsync()).Returns(Task.CompletedTask);
+            var service = new PostService(repo.Object);
+            var controller = new PostsController(service);
+
+            var result = await controller.Delete(post.Id);
+
+            Assert.IsType<NoContentResult>(result);
+        }
+
+        [Fact]
+        public async Task Delete_NotFound_WhenMissing()
+        {
+            var repo = new Mock<IRepository<Post>>();
+            repo.Setup(r => r.GetByIdAsync(It.IsAny<int>())).ReturnsAsync((Post)null!);
+            var service = new PostService(repo.Object);
+            var controller = new PostsController(service);
+
+            var result = await controller.Delete(123);
+
+            Assert.IsType<NotFoundResult>(result);
+        }
     }
 }

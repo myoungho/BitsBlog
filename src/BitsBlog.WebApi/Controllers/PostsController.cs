@@ -43,6 +43,15 @@ namespace BitsBlog.WebApi.Controllers
             return Ok(updated);
         }
 
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            if (id <= 0) return BadRequest();
+            var ok = await _service.DeleteAsync(id);
+            if (!ok) return NotFound();
+            return NoContent();
+        }
+
         public record CreatePostRequest(string Title, string Content);
         public record UpdatePostRequest(string Title, string Content);
     }

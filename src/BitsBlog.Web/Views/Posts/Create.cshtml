@@ -2,6 +2,7 @@
 <h1>글쓰기</h1>
 
 <form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
     <div asp-validation-summary="All" class="text-danger"></div>
 
     <div>
@@ -17,4 +18,3 @@
     <button type="submit">등록</button>
     <a href="/Posts" style="margin-left:8px">목록</a>
 </form>
-

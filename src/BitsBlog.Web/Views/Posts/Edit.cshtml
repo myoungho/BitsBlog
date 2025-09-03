@@ -3,6 +3,7 @@
 <h1>게시글 수정</h1>
 
 <form asp-action="Edit" method="post">
+    @Html.AntiForgeryToken()
     <input type="hidden" asp-for="Id" />
     <div asp-validation-summary="All" class="text-danger"></div>
     <div>
@@ -18,4 +19,3 @@
     <button type="submit">저장</button>
     <a href="/Posts" style="margin-left:8px">목록</a>
 </form>
-
