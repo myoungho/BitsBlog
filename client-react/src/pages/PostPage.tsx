@@ -1,13 +1,15 @@
 ﻿import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import type { Post } from "../hooks/usePosts";
-import { Button, ButtonGroup, Card } from "react-bootstrap";
+import { Button, Card } from "react-bootstrap";
 
 export function PostPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [post, setPost] = useState<Post | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -40,6 +42,28 @@ export function PostPage() {
       <div className="mb-3 d-flex gap-2">
         <Link to="/" className="btn btn-outline-secondary">목록</Link>
         <Link to={`/edit/${post.id}`} className="btn btn-primary">수정</Link>
+        <Button
+          variant="danger"
+          disabled={deleting}
+          onClick={async () => {
+            if (!id) return;
+            if (!confirm('정말 삭제하시겠습니까?')) return;
+            setDeleting(true);
+            setError(null);
+            try {
+              const base = import.meta.env.VITE_API_URL?.replace(/\/$/, "") ?? "";
+              const res = await fetch(`${base}/api/posts/${id}`, { method: 'DELETE' });
+              if (!res.ok) throw new Error(`삭제 실패: ${res.status}`);
+              navigate('/');
+            } catch (e: any) {
+              setError(e?.message ?? '삭제 중 오류가 발생했습니다.');
+            } finally {
+              setDeleting(false);
+            }
+          }}
+        >
+          {deleting ? '삭제 중...' : '삭제'}
+        </Button>
       </div>
 
       <Card>
