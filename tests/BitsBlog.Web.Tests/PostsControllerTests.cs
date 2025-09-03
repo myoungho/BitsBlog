@@ -26,7 +26,10 @@ namespace BitsBlog.Web.Tests
             {
                 Content = new StringContent(json, Encoding.UTF8, "application/json")
             });
-            var client = new HttpClient(handler);
+            var client = new HttpClient(handler)
+            {
+                BaseAddress = new Uri("http://localhost/api/")
+            };
             var factory = new Mock<IHttpClientFactory>();
             factory.Setup(f => f.CreateClient("api")).Returns(client);
             var controller = new PostsController(factory.Object);
