@@ -26,7 +26,7 @@ namespace BitsBlog.WebApi.Tests
             var repo = new Mock<IRepository<Post>>();
             repo.Setup(r => r.GetAllAsync()).ReturnsAsync(posts);
             var service = new PostService(repo.Object);
-            var controller = new PostsController(service);
+            var controller = new PostsController(service, new Ganss.Xss.HtmlSanitizer());
 
             var result = await controller.Get();
 
@@ -40,7 +40,7 @@ namespace BitsBlog.WebApi.Tests
             var repo = new Mock<IRepository<Post>>();
             repo.Setup(r => r.InsertAsync(It.IsAny<Post>())).ReturnsAsync(post);
             var service = new PostService(repo.Object);
-            var controller = new PostsController(service);
+            var controller = new PostsController(service, new Ganss.Xss.HtmlSanitizer());
             var request = new PostsController.CreatePostRequest(post.Title, post.Content);
 
             var response = await controller.Post(request);
@@ -59,7 +59,7 @@ namespace BitsBlog.WebApi.Tests
             var repo = new Mock<IRepository<Post>>();
             repo.Setup(r => r.GetByIdAsync(post.Id)).ReturnsAsync(post);
             var service = new PostService(repo.Object);
-            var controller = new PostsController(service);
+            var controller = new PostsController(service, new Ganss.Xss.HtmlSanitizer());
 
             var result = await controller.GetById(post.Id);
 
@@ -76,7 +76,7 @@ namespace BitsBlog.WebApi.Tests
             var repo = new Mock<IRepository<Post>>();
             repo.Setup(r => r.GetByIdAsync(It.IsAny<int>())).ReturnsAsync((Post)null!);
             var service = new PostService(repo.Object);
-            var controller = new PostsController(service);
+            var controller = new PostsController(service, new Ganss.Xss.HtmlSanitizer());
 
             var result = await controller.GetById(123);
 
@@ -92,7 +92,7 @@ namespace BitsBlog.WebApi.Tests
             repo.Setup(r => r.UpdateAsync(post)).Returns(Task.CompletedTask);
             repo.Setup(r => r.SaveDbContextChangesAsync()).Returns(Task.CompletedTask);
             var service = new PostService(repo.Object);
-            var controller = new PostsController(service);
+            var controller = new PostsController(service, new Ganss.Xss.HtmlSanitizer());
 
             var res = await controller.Put(post.Id, new PostsController.UpdatePostRequest("New", "NewC"));
 
@@ -109,7 +109,7 @@ namespace BitsBlog.WebApi.Tests
             var repo = new Mock<IRepository<Post>>();
             repo.Setup(r => r.GetByIdAsync(It.IsAny<int>())).ReturnsAsync((Post)null!);
             var service = new PostService(repo.Object);
-            var controller = new PostsController(service);
+            var controller = new PostsController(service, new Ganss.Xss.HtmlSanitizer());
 
             var res = await controller.Put(999, new PostsController.UpdatePostRequest("A", "B"));
 
@@ -125,7 +125,7 @@ namespace BitsBlog.WebApi.Tests
             repo.Setup(r => r.DeleteAsync(post)).Returns(Task.CompletedTask);
             repo.Setup(r => r.SaveDbContextChangesAsync()).Returns(Task.CompletedTask);
             var service = new PostService(repo.Object);
-            var controller = new PostsController(service);
+            var controller = new PostsController(service, new Ganss.Xss.HtmlSanitizer());
 
             var result = await controller.Delete(post.Id);
 
@@ -138,7 +138,7 @@ namespace BitsBlog.WebApi.Tests
             var repo = new Mock<IRepository<Post>>();
             repo.Setup(r => r.GetByIdAsync(It.IsAny<int>())).ReturnsAsync((Post)null!);
             var service = new PostService(repo.Object);
-            var controller = new PostsController(service);
+            var controller = new PostsController(service, new Ganss.Xss.HtmlSanitizer());
 
             var result = await controller.Delete(123);
 

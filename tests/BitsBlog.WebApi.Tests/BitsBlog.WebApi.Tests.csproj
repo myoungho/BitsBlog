@@ -11,6 +11,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Moq" Version="4.20.69" />
+    <PackageReference Include="HtmlSanitizer" Version="9.0.886" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\BitsBlog.WebApi\BitsBlog.WebApi.csproj" />
