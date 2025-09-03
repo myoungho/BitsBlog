@@ -18,6 +18,10 @@ namespace BitsBlog.Web.Controllers
         public async Task<IActionResult> Index()
         {
             var client = _clientFactory.CreateClient("api");
+            if (client.BaseAddress == null)
+            {
+                client.BaseAddress = new System.Uri("http://localhost/api/");
+            }
             var posts = await client.GetFromJsonAsync<IEnumerable<PostDto>>("posts");
             return View(posts);
         }
@@ -29,6 +33,10 @@ namespace BitsBlog.Web.Controllers
         {
             if (!ModelState.IsValid) return View(model);
             var client = _clientFactory.CreateClient("api");
+            if (client.BaseAddress == null)
+            {
+                client.BaseAddress = new System.Uri("http://localhost/api/");
+            }
             await client.PostAsJsonAsync("posts", new { model.Title, model.Content });
             return RedirectToAction("Index", "Home");
         }
