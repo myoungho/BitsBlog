@@ -1,5 +1,6 @@
 ﻿import { useState } from "react";
 import type { Post } from "../hooks/usePosts";
+import { Button, Form } from "react-bootstrap";
 
 interface CreatePostProps {
   onCreated?: (post: Post) => void;
@@ -41,37 +42,31 @@ export function CreatePost({ onCreated }: CreatePostProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ marginBottom: 16 }}>
-      <h2>새 글 작성</h2>
+    <form onSubmit={handleSubmit}>
       {error && (
-        <div style={{ color: "red", marginBottom: 8 }}>오류: {error}</div>
+        <div className="text-danger mb-2">오류: {error}</div>
       )}
-      <div style={{ marginBottom: 8 }}>
-        <label>
-          제목
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            disabled={submitting}
-            style={{ display: "block", width: "100%" }}
-          />
-        </label>
-      </div>
-      <div style={{ marginBottom: 8 }}>
-        <label>
-          내용
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            disabled={submitting}
-            rows={8}
-            style={{ display: "block", width: "100%" }}
-          />
-        </label>
-      </div>
-      <button type="submit" disabled={submitting}>
+      <Form.Group className="mb-3" controlId="title">
+        <Form.Label>제목</Form.Label>
+        <Form.Control
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          disabled={submitting}
+        />
+      </Form.Group>
+      <Form.Group className="mb-3" controlId="content">
+        <Form.Label>내용</Form.Label>
+        <Form.Control
+          as="textarea"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          disabled={submitting}
+          rows={8}
+        />
+      </Form.Group>
+      <Button type="submit" disabled={submitting}>
         {submitting ? "저장 중..." : "등록"}
-      </button>
+      </Button>
     </form>
   );
 }

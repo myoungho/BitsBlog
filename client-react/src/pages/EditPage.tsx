@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import type { Post } from "../hooks/usePosts";
+import { Button, Card, Form } from "react-bootstrap";
 
 export function EditPage() {
   const { id } = useParams<{ id: string }>();
@@ -53,36 +54,33 @@ export function EditPage() {
   if (loading) return <div>불러오는 중...</div>;
   if (error) return (
     <div>
-      <p style={{ color: "red" }}>오류: {error}</p>
-      <Link to="/">목록으로</Link>
+      <p className="text-danger">오류: {error}</p>
+      <Link to="/" className="btn btn-outline-secondary">목록으로</Link>
     </div>
   );
 
   return (
     <div>
-      <h1>게시글 수정</h1>
-      <div style={{ marginBottom: 8 }}>
-        <Link to="/">목록으로</Link>
+      <div className="mb-3">
+        <Link to="/" className="btn btn-outline-secondary">목록으로</Link>
       </div>
-      <form onSubmit={onSubmit}>
-        <div style={{ marginBottom: 8 }}>
-          <label>
-            제목
-            <input value={title} onChange={(e) => setTitle(e.target.value)} />
-          </label>
-        </div>
-        <div style={{ marginBottom: 8 }}>
-          <label>
-            내용
-            <textarea
-              rows={8}
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-            />
-          </label>
-        </div>
-        <button type="submit">저장</button>
-      </form>
+
+      <Card>
+        <Card.Body>
+          <h1 className="h4 mb-3">게시글 수정</h1>
+          <Form onSubmit={onSubmit}>
+            <Form.Group className="mb-3" controlId="title">
+              <Form.Label>제목</Form.Label>
+              <Form.Control value={title} onChange={(e) => setTitle(e.target.value)} />
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="content">
+              <Form.Label>내용</Form.Label>
+              <Form.Control as="textarea" rows={8} value={content} onChange={(e) => setContent(e.target.value)} />
+            </Form.Group>
+            <Button type="submit">저장</Button>
+          </Form>
+        </Card.Body>
+      </Card>
     </div>
   );
 }

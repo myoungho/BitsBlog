@@ -1,4 +1,6 @@
-﻿import { Post } from "../hooks/usePosts";
+﻿import { Link } from "react-router-dom";
+import { Card } from "react-bootstrap";
+import { Post } from "../hooks/usePosts";
 
 interface PostsListProps {
   posts: Post[];
@@ -9,11 +11,14 @@ export function PostsList({ posts }: PostsListProps) {
   return (
     <div>
       {posts.map((p) => (
-        <article key={p.id}>
-          <h3>
-            <a href={`/posts/${p.id}`}>{p.title}</a> ({new Date(p.created).toLocaleString()})
-          </h3>
-        </article>
+        <Card className="mb-3" key={p.id}>
+          <Card.Body>
+            <Card.Title>
+              <Link to={`/posts/${p.id}`}>{p.title}</Link>
+            </Card.Title>
+            <div className="text-muted">{new Date(p.created).toLocaleString()}</div>
+          </Card.Body>
+        </Card>
       ))}
     </div>
   );

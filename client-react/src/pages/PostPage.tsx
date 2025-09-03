@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import type { Post } from "../hooks/usePosts";
+import { Button, ButtonGroup, Card } from "react-bootstrap";
 
 export function PostPage() {
   const { id } = useParams<{ id: string }>();
@@ -29,24 +30,25 @@ export function PostPage() {
   if (error || !post)
     return (
       <div>
-        <p style={{ color: "red" }}>오류: {error ?? "게시글이 존재하지 않습니다."}</p>
-        <Link to="/">목록</Link>
+        <p className="text-danger">오류: {error ?? "게시글이 존재하지 않습니다."}</p>
+        <Link to="/" className="btn btn-outline-secondary">목록</Link>
       </div>
     );
 
   return (
     <div>
-      <div style={{ marginBottom: 8 }}>
-        <Link to="/">목록</Link>
-        <Link to={`/edit/${post.id}`} style={{ marginLeft: 8 }}>
-          수정
-        </Link>
+      <div className="mb-3 d-flex gap-2">
+        <Link to="/" className="btn btn-outline-secondary">목록</Link>
+        <Link to={`/edit/${post.id}`} className="btn btn-primary">수정</Link>
       </div>
-      <h1>{post.title}</h1>
-      <div style={{ color: "#666", marginBottom: 12 }}>
-        작성일: {new Date(post.created).toLocaleString()}
-      </div>
-      <p>{post.content}</p>
+
+      <Card>
+        <Card.Body>
+          <h1 className="h4">{post.title}</h1>
+          <div className="text-muted mb-3">작성일: {new Date(post.created).toLocaleString()}</div>
+          <div style={{ whiteSpace: 'pre-wrap' }}>{post.content}</div>
+        </Card.Body>
+      </Card>
     </div>
   );
 }
