@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 import { usePosts } from "../hooks/usePosts";
 import { PostsList } from "../components/PostsList";
 
@@ -15,4 +15,3 @@ export function ListPage() {
     </div>
   );
 }
-

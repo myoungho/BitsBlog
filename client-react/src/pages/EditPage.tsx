@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import type { Post } from "../hooks/usePosts";
 
@@ -14,14 +14,15 @@ export function EditPage() {
     let mounted = true;
     async function load() {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/posts/${id}`);
-        if (!res.ok) throw new Error(`로드 실패: ${res.status}`);
+        const base = import.meta.env.VITE_API_URL?.replace(/\/$/, "") ?? "";
+        const res = await fetch(`${base}/api/posts/${id}`);
+        if (!res.ok) throw new Error(`요청 실패: ${res.status}`);
         const data = (await res.json()) as Post;
         if (!mounted) return;
         setTitle(data.title);
         setContent(data.content);
       } catch (e: any) {
-        setError(e?.message ?? "불러오기 실패");
+        setError(e?.message ?? "게시글을 불러오는 중 오류가 발생했습니다.");
       } finally {
         setLoading(false);
       }
@@ -36,7 +37,8 @@ export function EditPage() {
     e.preventDefault();
     setError(null);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/posts/${id}` ,{
+      const base = import.meta.env.VITE_API_URL?.replace(/\/$/, "") ?? "";
+      const res = await fetch(`${base}/api/posts/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, content }),
@@ -44,7 +46,7 @@ export function EditPage() {
       if (!res.ok) throw new Error(`저장 실패: ${res.status}`);
       navigate("/");
     } catch (e: any) {
-      setError(e?.message ?? "저장 실패");
+      setError(e?.message ?? "저장 중 오류가 발생했습니다.");
     }
   }
 
@@ -58,7 +60,7 @@ export function EditPage() {
 
   return (
     <div>
-      <h1>글 수정</h1>
+      <h1>게시글 수정</h1>
       <div style={{ marginBottom: 8 }}>
         <Link to="/">목록으로</Link>
       </div>
@@ -73,7 +75,7 @@ export function EditPage() {
           <label>
             내용
             <textarea
-              rows={5}
+              rows={8}
               value={content}
               onChange={(e) => setContent(e.target.value)}
             />
@@ -84,4 +86,3 @@ export function EditPage() {
     </div>
   );
 }
-

@@ -1,4 +1,4 @@
-import { Post } from "../hooks/usePosts";
+﻿import { Post } from "../hooks/usePosts";
 
 interface PostsListProps {
   posts: Post[];
@@ -18,4 +18,3 @@ export function PostsList({ posts }: PostsListProps) {
     </div>
   );
 }
-

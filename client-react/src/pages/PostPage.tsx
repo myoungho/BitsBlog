@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import type { Post } from "../hooks/usePosts";
 
@@ -11,12 +11,13 @@ export function PostPage() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/posts/${id}`);
-        if (!res.ok) throw new Error(`오류 상태: ${res.status}`);
+        const base = import.meta.env.VITE_API_URL?.replace(/\/$/, "") ?? "";
+        const res = await fetch(`${base}/api/posts/${id}`);
+        if (!res.ok) throw new Error(`요청 실패: ${res.status}`);
         const data = (await res.json()) as Post;
         setPost(data);
       } catch (e: any) {
-        setError(e?.message ?? "오류가 발생했습니다.");
+        setError(e?.message ?? "게시글을 불러오는 중 오류가 발생했습니다.");
       } finally {
         setLoading(false);
       }
@@ -28,7 +29,7 @@ export function PostPage() {
   if (error || !post)
     return (
       <div>
-        <p style={{ color: "red" }}>오류: {error ?? "알 수 없는 오류"}</p>
+        <p style={{ color: "red" }}>오류: {error ?? "게시글이 존재하지 않습니다."}</p>
         <Link to="/">목록</Link>
       </div>
     );
@@ -49,4 +50,3 @@ export function PostPage() {
     </div>
   );
 }
-
