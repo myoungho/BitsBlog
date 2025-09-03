@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using BitsBlog.Application.DTOs;
 using BitsBlog.Application.Services;
@@ -11,9 +11,11 @@ namespace BitsBlog.WebApi.Controllers
     public class PostsController : ControllerBase
     {
         private readonly IPostService _service;
-        public PostsController(IPostService service)
+        private readonly Ganss.Xss.IHtmlSanitizer _sanitizer;
+        public PostsController(IPostService service, Ganss.Xss.IHtmlSanitizer sanitizer)
         {
             _service = service;
+            _sanitizer = sanitizer;
         }
 
         [HttpGet]
@@ -30,7 +32,8 @@ namespace BitsBlog.WebApi.Controllers
         [HttpPost]
         public async Task<ActionResult<PostDto>> Post([FromBody] CreatePostRequest request)
         {
-            var post = await _service.CreateAsync(request.Title, request.Content);
+            var safe = _sanitizer.Sanitize(request.Content);
+            var post = await _service.CreateAsync(request.Title, safe);
             return CreatedAtAction(nameof(GetById), new { id = post.Id }, post);
         }
 
@@ -38,7 +41,8 @@ namespace BitsBlog.WebApi.Controllers
         public async Task<ActionResult<PostDto>> Put(int id, [FromBody] UpdatePostRequest request)
         {
             if (id <= 0) return BadRequest();
-            var updated = await _service.UpdateAsync(id, request.Title, request.Content);
+            var safe = _sanitizer.Sanitize(request.Content);
+            var updated = await _service.UpdateAsync(id, request.Title, safe);
             if (updated is null) return NotFound();
             return Ok(updated);
         }
@@ -56,3 +60,4 @@ namespace BitsBlog.WebApi.Controllers
         public record UpdatePostRequest(string Title, string Content);
     }
 }
+

@@ -36,6 +36,15 @@ namespace BitsBlog.Web.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            var client = _clientFactory.CreateClient("api");
+            var post = await client.GetFromJsonAsync<PostDto>($"posts/{id}");
+            if (post is null) return NotFound();
+            return View(post);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
             var client = _clientFactory.CreateClient("api");

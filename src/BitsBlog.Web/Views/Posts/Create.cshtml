@@ -1,20 +1,71 @@
 @model BitsBlog.Web.Models.CreatePostViewModel
-<h1>글쓰기</h1>
+@{
+    ViewData["Title"] = "글 작성";
+}
 
-<form asp-action="Create" method="post">
-    @Html.AntiForgeryToken()
-    <div asp-validation-summary="All" class="text-danger"></div>
+<style>
+  /* CKEditor 5 편집 영역 높이 조정 */
+  .ck-editor__editable[role="textbox"] { min-height: 400px; }
+</style>
 
-    <div>
-        <label asp-for="Title"></label>
-        <input asp-for="Title" />
-        <span asp-validation-for="Title" class="text-danger"></span>
-    </div>
-    <div>
-        <label asp-for="Content"></label>
-        <textarea asp-for="Content"></textarea>
-        <span asp-validation-for="Content" class="text-danger"></span>
-    </div>
-    <button type="submit">등록</button>
-    <a href="/Posts" style="margin-left:8px">목록</a>
-</form>
+<div class="card">
+  <div class="card-body">
+        <h1 class="h4 mb-3">글 작성</h1>
+        <form asp-action="Create" method="post" class="needs-validation" novalidate>
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            <div class="mb-3">
+                <label asp-for="Title" class="form-label"></label>
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Content" class="form-label"></label>
+                <textarea asp-for="Content" class="form-control" rows="12"></textarea>
+                <span asp-validation-for="Content" class="text-danger"></span>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">저장</button>
+                <a class="btn btn-outline-secondary" href="/Posts">목록</a>
+            </div>
+        </form>
+  </div>
+</div>
+
+@section Scripts{
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
+    <script>
+      (function(){
+        var textarea = document.querySelector('textarea[name="Content"]');
+        if(!textarea) return;
+        ClassicEditor.create(textarea, {
+          language: 'ko',
+          toolbar: ['heading','|','bold','italic','underline','link','bulletedList','numberedList','blockQuote','insertTable','undo','redo','|','uploadImage'],
+          ckfinder: { uploadUrl: (window.API_BASE || '/api/') + 'uploads' }
+        }).then(function(editor){
+          // 에디터 업로드 커스텀: 이미지 업로드/응답 처리
+          editor.plugins.get('FileRepository').createUploadAdapter = function(loader){
+            return {
+              upload: function(){
+                return loader.file.then(function(file){
+                  var data = new FormData();
+                  data.append('file', file);
+                  var url = (window.API_BASE || '/api/') + 'uploads';
+                  return fetch(url, { method: 'POST', body: data })
+                    .then(function(res){ if(!res.ok) throw new Error('업로드 실패: '+res.status); return res.json(); })
+                    .then(function(json){ return { default: json.url }; });
+                });
+              },
+              abort: function(){}
+            };
+          };
+          var form = textarea.closest('form');
+          if(form){
+            form.addEventListener('submit', function(){ textarea.value = editor.getData(); });
+          }
+        }).catch(function(e){ console.error('CKEditor init failed', e); });
+      })();
+    </script>
+}

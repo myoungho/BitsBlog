@@ -16,7 +16,7 @@ export function usePosts() {
       .then((res) => res.json() as Promise<Post[]>)
       .then(setPosts)
       .catch((err) => {
-        console.error("게시글 로딩 실패", err);
+        console.error("게시글 목록 불러오기 실패", err);
       });
   }, []);
 
@@ -24,5 +24,6 @@ export function usePosts() {
     reload();
   }, [reload]);
 
-  return { posts, reload };
+    return { posts, reload };
 }
+

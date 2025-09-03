@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ListPage } from "./pages/ListPage";
 import { CreatePage } from "./pages/CreatePage";
 import { EditPage } from "./pages/EditPage";
+import { PostPage } from "./pages/PostPage";
 
 export default function App() {
   return (
@@ -11,6 +12,7 @@ export default function App() {
           <Route path="/" element={<ListPage />} />
           <Route path="/new" element={<CreatePage />} />
           <Route path="/edit/:id" element={<EditPage />} />
+          <Route path="/posts/:id" element={<PostPage />} />
         </Routes>
       </div>
     </BrowserRouter>

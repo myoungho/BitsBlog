@@ -3,23 +3,16 @@ import { usePosts } from "../hooks/usePosts";
 import { PostsList } from "../components/PostsList";
 
 export function ListPage() {
-  const { posts, reload } = usePosts();
-
-  async function handleDelete(id: number) {
-    if (!confirm("삭제하시겠습니까?")) return;
-    await fetch(`${import.meta.env.VITE_API_URL}/api/posts/${id}`, {
-      method: "DELETE",
-    });
-    reload();
-  }
+  const { posts } = usePosts();
 
   return (
     <div>
-      <h1>게시글</h1>
+      <h1>게시글 목록</h1>
       <div style={{ margin: "8px 0 16px" }}>
-        <Link to="/new">글쓰기</Link>
+        <Link to="/new">새 글 작성</Link>
       </div>
-      <PostsList posts={posts} onDelete={handleDelete} />
+      <PostsList posts={posts} />
     </div>
   );
 }
+
