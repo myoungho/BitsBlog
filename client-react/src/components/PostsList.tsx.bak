@@ -14,9 +14,9 @@ export function PostsList({ posts }: PostsListProps) {
             {p.title} ({new Date(p.created).toLocaleString()})
           </h3>
           <p>{p.content}</p>
-          <a href={`/edit/${p.id}`}>수정</a>
         </article>
       ))}
     </div>
   );
 }
+

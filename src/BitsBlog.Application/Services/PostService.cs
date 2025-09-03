@@ -27,5 +27,23 @@ namespace BitsBlog.Application.Services
             await _repository.SaveDbContextChangesAsync();
             return new PostDto(post.Id, post.Title, post.Content, post.Created);
         }
+
+        public async Task<PostDto?> GetByIdAsync(int id)
+        {
+            var post = await _repository.GetByIdAsync(id);
+            if (post is null) return null;
+            return new PostDto(post.Id, post.Title, post.Content, post.Created);
+        }
+
+        public async Task<PostDto?> UpdateAsync(int id, string title, string content)
+        {
+            var post = await _repository.GetByIdAsync(id);
+            if (post is null) return null;
+            post.Title = title;
+            post.Content = content;
+            await _repository.UpdateAsync(post);
+            await _repository.SaveDbContextChangesAsync();
+            return new PostDto(post.Id, post.Title, post.Content, post.Created);
+        }
     }
 }

@@ -1,9 +1,10 @@
-@model BitsBlog.Web.Models.CreatePostViewModel
-<h1>글쓰기</h1>
+@model BitsBlog.Web.Models.EditPostViewModel
 
-<form asp-action="Create" method="post">
+<h1>게시글 수정</h1>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
     <div asp-validation-summary="All" class="text-danger"></div>
-
     <div>
         <label asp-for="Title"></label>
         <input asp-for="Title" />
@@ -14,7 +15,7 @@
         <textarea asp-for="Content"></textarea>
         <span asp-validation-for="Content" class="text-danger"></span>
     </div>
-    <button type="submit">등록</button>
+    <button type="submit">저장</button>
     <a href="/Posts" style="margin-left:8px">목록</a>
 </form>
 

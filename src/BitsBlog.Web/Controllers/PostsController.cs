@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using BitsBlog.Application.DTOs;
 using BitsBlog.Web.Models;
 using Microsoft.AspNetCore.Mvc;
+using System;
 
 namespace BitsBlog.Web.Controllers
 {
@@ -18,10 +19,6 @@ namespace BitsBlog.Web.Controllers
         public async Task<IActionResult> Index()
         {
             var client = _clientFactory.CreateClient("api");
-            if (client.BaseAddress == null)
-            {
-                client.BaseAddress = new System.Uri("http://localhost/api/");
-            }
             var posts = await client.GetFromJsonAsync<IEnumerable<PostDto>>("posts");
             return View(posts);
         }
@@ -29,15 +26,35 @@ namespace BitsBlog.Web.Controllers
         public IActionResult Create() => View();
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreatePostViewModel model)
         {
             if (!ModelState.IsValid) return View(model);
             var client = _clientFactory.CreateClient("api");
-            if (client.BaseAddress == null)
-            {
-                client.BaseAddress = new System.Uri("http://localhost/api/");
-            }
             await client.PostAsJsonAsync("posts", new { model.Title, model.Content });
+            return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var client = _clientFactory.CreateClient("api");
+            var post = await client.GetFromJsonAsync<PostDto>($"posts/{id}");
+            if (post is null) return NotFound();
+            var vm = new EditPostViewModel { Id = post.Id, Title = post.Title, Content = post.Content };
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(EditPostViewModel model)
+        {
+            if (!ModelState.IsValid) return View(model);
+            var client = _clientFactory.CreateClient("api");
+            var res = await client.PutAsJsonAsync($"posts/{model.Id}", new { model.Title, model.Content });
+            if (res.StatusCode == System.Net.HttpStatusCode.NotFound)
+                return NotFound();
+            res.EnsureSuccessStatusCode();
             return RedirectToAction("Index", "Home");
         }
     }

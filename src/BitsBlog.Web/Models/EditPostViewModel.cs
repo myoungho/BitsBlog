@@ -2,8 +2,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BitsBlog.Web.Models
 {
-    public class CreatePostViewModel
+    public class EditPostViewModel
     {
+        [Required]
+        public int Id { get; set; }
+
         [Required(ErrorMessage = "제목을 입력하세요.")]
         [StringLength(200, ErrorMessage = "제목은 {1}자 이하여야 합니다.")]
         public string Title { get; set; } = string.Empty;
@@ -13,3 +16,4 @@ namespace BitsBlog.Web.Models
         public string Content { get; set; } = string.Empty;
     }
 }
+

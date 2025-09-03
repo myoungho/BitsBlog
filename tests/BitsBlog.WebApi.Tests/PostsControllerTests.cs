@@ -51,5 +51,69 @@ namespace BitsBlog.WebApi.Tests
             Assert.Equal(post.Title, dto.Title);
             Assert.Equal(post.Content, dto.Content);
         }
+
+        [Fact]
+        public async Task GetById_ReturnsOk_WhenFound()
+        {
+            var post = new Post { Id = 5, Title = "T", Content = "C", Created = DateTime.UtcNow };
+            var repo = new Mock<IRepository<Post>>();
+            repo.Setup(r => r.GetByIdAsync(post.Id)).ReturnsAsync(post);
+            var service = new PostService(repo.Object);
+            var controller = new PostsController(service);
+
+            var result = await controller.GetById(post.Id);
+
+            var ok = Assert.IsType<OkObjectResult>(result.Result);
+            var dto = Assert.IsType<PostDto>(ok.Value);
+            Assert.Equal(post.Id, dto.Id);
+            Assert.Equal(post.Title, dto.Title);
+            Assert.Equal(post.Content, dto.Content);
+        }
+
+        [Fact]
+        public async Task GetById_ReturnsNotFound_WhenMissing()
+        {
+            var repo = new Mock<IRepository<Post>>();
+            repo.Setup(r => r.GetByIdAsync(It.IsAny<int>())).ReturnsAsync((Post)null!);
+            var service = new PostService(repo.Object);
+            var controller = new PostsController(service);
+
+            var result = await controller.GetById(123);
+
+            Assert.IsType<NotFoundResult>(result.Result);
+        }
+
+        [Fact]
+        public async Task Put_UpdatesAndReturnsOk_WhenFound()
+        {
+            var post = new Post { Id = 7, Title = "Old", Content = "OldC", Created = DateTime.UtcNow };
+            var repo = new Mock<IRepository<Post>>();
+            repo.Setup(r => r.GetByIdAsync(post.Id)).ReturnsAsync(post);
+            repo.Setup(r => r.UpdateAsync(post)).Returns(Task.CompletedTask);
+            repo.Setup(r => r.SaveDbContextChangesAsync()).Returns(Task.CompletedTask);
+            var service = new PostService(repo.Object);
+            var controller = new PostsController(service);
+
+            var res = await controller.Put(post.Id, new PostsController.UpdatePostRequest("New", "NewC"));
+
+            var ok = Assert.IsType<OkObjectResult>(res.Result);
+            var dto = Assert.IsType<PostDto>(ok.Value);
+            Assert.Equal(post.Id, dto.Id);
+            Assert.Equal("New", dto.Title);
+            Assert.Equal("NewC", dto.Content);
+        }
+
+        [Fact]
+        public async Task Put_ReturnsNotFound_WhenMissing()
+        {
+            var repo = new Mock<IRepository<Post>>();
+            repo.Setup(r => r.GetByIdAsync(It.IsAny<int>())).ReturnsAsync((Post)null!);
+            var service = new PostService(repo.Object);
+            var controller = new PostsController(service);
+
+            var res = await controller.Put(999, new PostsController.UpdatePostRequest("A", "B"));
+
+            Assert.IsType<NotFoundResult>(res.Result);
+        }
     }
 }

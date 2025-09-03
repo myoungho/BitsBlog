@@ -1,11 +1,13 @@
-using System;
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
+var apiBaseUrl = builder.Configuration["Api:BaseUrl"];
 builder.Services.AddHttpClient("api", client =>
 {
-    client.BaseAddress = new Uri("https://localhost:52015/api/");
+    if (!string.IsNullOrWhiteSpace(apiBaseUrl))
+    {
+        client.BaseAddress = new Uri(apiBaseUrl!);
+    }
 });
 
 var app = builder.Build();

@@ -1,13 +1,6 @@
-@model IEnumerable<BitsBlog.Application.DTOs.PostDto>
-
-<h1>게시판</h1>
-<a href="/Posts/Create">글쓰기</a>
-<ul>
-@foreach (var post in Model)
-{
-    <li>
-        <h3>@post.Title (@post.Created.ToLocalTime())</h3>
-        <p>@post.Content</p>
-    </li>
+@{
+    Layout = null;
 }
-</ul>
+<meta http-equiv="refresh" content="0; url=/Posts" />
+<a href="/Posts">게시글 목록으로 이동</a>
+

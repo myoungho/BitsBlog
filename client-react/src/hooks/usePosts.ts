@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export interface Post {
   id: number;
@@ -11,11 +11,18 @@ export interface Post {
 export function usePosts() {
   const [posts, setPosts] = useState<Post[]>([]);
 
-  useEffect(() => {
+  const reload = useCallback(() => {
     fetch(`${import.meta.env.VITE_API_URL}/api/posts`)
       .then((res) => res.json() as Promise<Post[]>)
-      .then(setPosts);
+      .then(setPosts)
+      .catch((err) => {
+        console.error("게시글 로딩 실패", err);
+      });
   }, []);
 
-  return posts;
+  useEffect(() => {
+    reload();
+  }, [reload]);
+
+  return { posts, reload };
 }
