@@ -1,6 +1,9 @@
 ﻿import { useState } from "react";
 import type { Post } from "../hooks/usePosts";
 import { Button, Form } from "react-bootstrap";
+import { CKEditor } from '@ckeditor/ckeditor5-react';
+// @ts-ignore - classic build has no types package
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 
 interface CreatePostProps {
   onCreated?: (post: Post) => void;
@@ -56,13 +59,15 @@ export function CreatePost({ onCreated }: CreatePostProps) {
       </Form.Group>
       <Form.Group className="mb-3" controlId="content">
         <Form.Label>내용</Form.Label>
-        <Form.Control
-          as="textarea"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          disabled={submitting}
-          rows={8}
-        />
+        <div className="border rounded">
+          <CKEditor
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            editor={ClassicEditor as any}
+            data={content}
+            onChange={(_, editor) => setContent(editor.getData())}
+            config={{ language: 'ko' }}
+          />
+        </div>
       </Form.Group>
       <Button type="submit" disabled={submitting}>
         {submitting ? "저장 중..." : "등록"}

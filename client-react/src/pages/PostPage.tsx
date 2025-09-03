@@ -46,7 +46,7 @@ export function PostPage() {
         <Card.Body>
           <h1 className="h4">{post.title}</h1>
           <div className="text-muted mb-3">작성일: {new Date(post.created).toLocaleString()}</div>
-          <div style={{ whiteSpace: 'pre-wrap' }}>{post.content}</div>
+          <div dangerouslySetInnerHTML={{ __html: post.content }} />
         </Card.Body>
       </Card>
     </div>

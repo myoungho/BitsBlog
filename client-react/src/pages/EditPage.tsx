@@ -2,6 +2,9 @@
 import { useNavigate, useParams, Link } from "react-router-dom";
 import type { Post } from "../hooks/usePosts";
 import { Button, Card, Form } from "react-bootstrap";
+import { CKEditor } from '@ckeditor/ckeditor5-react';
+// @ts-ignore - classic build has no types package
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 
 export function EditPage() {
   const { id } = useParams<{ id: string }>();
@@ -75,7 +78,15 @@ export function EditPage() {
             </Form.Group>
             <Form.Group className="mb-3" controlId="content">
               <Form.Label>내용</Form.Label>
-              <Form.Control as="textarea" rows={8} value={content} onChange={(e) => setContent(e.target.value)} />
+              <div className="border rounded">
+                <CKEditor
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  editor={ClassicEditor as any}
+                  data={content}
+                  onChange={(_, editor) => setContent(editor.getData())}
+                  config={{ language: 'ko' }}
+                />
+              </div>
             </Form.Group>
             <Button type="submit">저장</Button>
           </Form>
