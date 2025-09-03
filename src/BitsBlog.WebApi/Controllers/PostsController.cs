@@ -17,10 +17,6 @@ namespace BitsBlog.WebApi.Controllers
             _service = service;
             _sanitizer = sanitizer;
         }
-        public PostsController(IPostService service)
-            : this(service, new Ganss.Xss.HtmlSanitizer())
-        {
-        }
 
         [HttpGet]
         public async Task<IEnumerable<PostDto>> Get() => await _service.GetPostsAsync();

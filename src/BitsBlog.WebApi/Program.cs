@@ -8,6 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+// Enable CORS services
+builder.Services.AddCors();
 builder.Services.AddSingleton<Ganss.Xss.IHtmlSanitizer>(_ =>
 {
     var sanitizer = new Ganss.Xss.HtmlSanitizer();
