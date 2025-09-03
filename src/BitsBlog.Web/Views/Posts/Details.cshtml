@@ -1,14 +1,11 @@
 @model BitsBlog.Application.DTOs.PostDto
 @{
-    ViewData["Title"] = "글 상세";
+    ViewData["Title"] = "게시글 상세";
 }
 
 <div class="d-flex gap-2 mb-3">
-    <a class="btn btn-outline-secondary" href="/Posts">목록</a>
-    <a class="btn btn-primary" href="/Posts/Edit/@Model.Id">수정</a>
-  </div>
-
-<div class="d-flex gap-2 mb-3">
+  <a class="btn btn-outline-secondary" href="/Posts">목록</a>
+  <a class="btn btn-primary" href="/Posts/Edit/@Model.Id">수정</a>
   <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('정말 삭제하시겠습니까?');">
     @Html.AntiForgeryToken()
     <button type="submit" class="btn btn-danger">삭제</button>
@@ -22,3 +19,4 @@
     <div class="mb-0">@Html.Raw(Model.Content)</div>
   </div>
 </div>
+
