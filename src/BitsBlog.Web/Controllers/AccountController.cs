@@ -12,6 +12,22 @@ namespace BitsBlog.Web.Controllers
             _clientFactory = clientFactory;
         }
 
+        private HttpClient Api() => _clientFactory.CreateClient("api");
+
+        private static Microsoft.AspNetCore.Http.CookieOptions JwtCookieOptions(System.DateTime expires)
+            => new Microsoft.AspNetCore.Http.CookieOptions
+            {
+                HttpOnly = true,
+                Secure = false, // keep existing behavior
+                SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax,
+                Expires = expires
+            };
+
+        private void SetJwtCookie(AuthResponse auth)
+        {
+            Response.Cookies.Append("jwt", auth.AccessToken, JwtCookieOptions(auth.Expires));
+        }
+
         [HttpGet]
         public IActionResult Login(string? returnUrl = null)
         {
@@ -26,7 +42,7 @@ namespace BitsBlog.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(string email, string password, string? returnUrl = null)
         {
-            var client = _clientFactory.CreateClient("api");
+            var client = Api();
             var res = await client.PostAsJsonAsync("auth/login", new LoginRequest(email, password));
             if (!res.IsSuccessStatusCode)
             {
@@ -39,17 +55,11 @@ namespace BitsBlog.Web.Controllers
                 ModelState.AddModelError(string.Empty, "Login failed.");
                 return View();
             }
-            Response.Cookies.Append("jwt", auth.AccessToken, new Microsoft.AspNetCore.Http.CookieOptions
-            {
-                HttpOnly = true,
-                Secure = false,
-                SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax,
-                Expires = auth.Expires
-            });
+            SetJwtCookie(auth);
             // No additional cookie: navbar reads display name from JWT
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 return Redirect(returnUrl);
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction(nameof(HomeController.Index), "Home");
         }
 
         [HttpGet]
@@ -64,7 +74,7 @@ namespace BitsBlog.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(string email, string password, string displayName)
         {
-            var client = _clientFactory.CreateClient("api");
+            var client = Api();
             var res = await client.PostAsJsonAsync("auth/register", new RegisterRequest(email, password, displayName));
             if (!res.IsSuccessStatusCode)
             {
@@ -77,15 +87,9 @@ namespace BitsBlog.Web.Controllers
                 ModelState.AddModelError(string.Empty, "Registration failed.");
                 return View();
             }
-            Response.Cookies.Append("jwt", auth.AccessToken, new Microsoft.AspNetCore.Http.CookieOptions
-            {
-                HttpOnly = true,
-                Secure = false,
-                SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax,
-                Expires = auth.Expires
-            });
+            SetJwtCookie(auth);
             // No additional cookie: navbar reads display name from JWT
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction(nameof(HomeController.Index), "Home");
         }
 
         [HttpPost]
@@ -93,7 +97,7 @@ namespace BitsBlog.Web.Controllers
         public IActionResult Logout()
         {
             Response.Cookies.Delete("jwt");
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction(nameof(HomeController.Index), "Home");
         }
 
         [HttpGet]
