@@ -1,14 +1,11 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
-using BitsBlog.Domain.Entities;
 using BitsBlog.Application.Services;
+using BitsBlog.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace BitsBlog.WebApi.Controllers
 {
@@ -61,7 +58,7 @@ namespace BitsBlog.WebApi.Controllers
             return Ok(new { profile.Value.LoginId, profile.Value.DisplayName, profile.Value.Role, profile.Value.Created });
         }
 
-        private (string Token, DateTime Expires) GenerateJwt(Customer c)
+        private (string Token, DateTime Expires) GenerateJwt(Customer customer)
         {
             var issuer = _config["Jwt:Issuer"] ?? "bitsblog";
             var audience = _config["Jwt:Audience"] ?? issuer;
@@ -72,10 +69,10 @@ namespace BitsBlog.WebApi.Controllers
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, c.LoginId),
-                new Claim(ClaimTypes.Name, c.DisplayName),
-                new Claim(ClaimTypes.Role, c.Role),
-                new Claim("cid", c.Id.ToString())
+                new Claim(ClaimTypes.NameIdentifier, customer.LoginId),
+                new Claim(ClaimTypes.Name, customer.DisplayName),
+                new Claim(ClaimTypes.Role, customer.Role),
+                new Claim("cid", customer.Id.ToString())
             };
             var expires = DateTime.UtcNow.AddMinutes(expiresMinutes);
             var token = new JwtSecurityToken(issuer, audience, claims, expires: expires, signingCredentials: credentials);
