@@ -23,12 +23,25 @@ namespace BitsBlog.Web.Controllers
             return View(posts);
         }
 
-        public IActionResult Create() => View();
+        public IActionResult Create()
+        {
+            var token = HttpContext.Request.Cookies["jwt"];
+            if (string.IsNullOrEmpty(token))
+            {
+                return RedirectToAction("Login", "Account", new { returnUrl = "/Posts/Create" });
+            }
+            return View();
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreatePostViewModel model)
         {
+            var token = HttpContext.Request.Cookies["jwt"];
+            if (string.IsNullOrEmpty(token))
+            {
+                return RedirectToAction("Login", "Account", new { returnUrl = "/Posts/Create" });
+            }
             if (!ModelState.IsValid) return View(model);
             var client = _clientFactory.CreateClient("api");
             await client.PostAsJsonAsync("posts", new { model.Title, model.Content });

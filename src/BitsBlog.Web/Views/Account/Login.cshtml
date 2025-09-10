@@ -7,6 +7,7 @@
       <div class="card-body">
         <h1 class="h4 mb-3">Login</h1>
         <form method="post" asp-action="Login">
+          <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
           @Html.AntiForgeryToken()
           <div class="mb-3">
             <label class="form-label">Email</label>
@@ -23,4 +24,3 @@
     </div>
   </div>
 </div>
-
