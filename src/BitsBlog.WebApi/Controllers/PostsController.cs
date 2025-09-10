@@ -19,9 +19,11 @@ namespace BitsBlog.WebApi.Controllers
             _sanitizer = sanitizer;
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IEnumerable<PostDto>> Get() => await _service.GetPostsAsync();
 
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<ActionResult<PostDto>> GetById(int id)
         {

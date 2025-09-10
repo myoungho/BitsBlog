@@ -41,4 +41,3 @@ namespace BitsBlog.Infrastructure.Migrations
         }
     }
 }
-

@@ -3,7 +3,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using BitsBlog.Domain.Entities;
-using BitsBlog.Infrastructure;
+using BitsBlog.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,11 +16,11 @@ namespace BitsBlog.WebApi.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly BitsBlogDbContext _db;
+        private readonly ICustomerService _customers;
         private readonly IConfiguration _config;
-        public AuthController(BitsBlogDbContext db, IConfiguration config)
+        public AuthController(ICustomerService customers, IConfiguration config)
         {
-            _db = db;
+            _customers = customers;
             _config = config;
         }
 
@@ -30,22 +30,13 @@ namespace BitsBlog.WebApi.Controllers
             if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
                 return BadRequest("Email and password are required");
 
-            var email = request.Email.Trim().ToLowerInvariant();
-            var exists = await _db.Customers.AnyAsync(c => c.LoginId == email);
-            if (exists) return Conflict("Email already registered");
-
-            var (hash, salt) = HashPassword(request.Password);
-            var customer = new Customer
+            var (ok, error, customer) = await _customers.RegisterAsync(request.Email, request.Password, request.DisplayName);
+            if (!ok || customer is null)
             {
-                LoginId = email,
-                DisplayName = string.IsNullOrWhiteSpace(request.DisplayName) ? email : request.DisplayName.Trim(),
-                PasswordHash = hash,
-                PasswordSalt = salt,
-                Role = "User",
-                Created = DateTime.UtcNow
-            };
-            _db.Customers.Add(customer);
-            await _db.SaveChangesAsync();
+                if (string.Equals(error, "Email already registered", StringComparison.OrdinalIgnoreCase))
+                    return Conflict(error);
+                return BadRequest(error ?? "Registration failed");
+            }
 
             var token = GenerateJwt(customer);
             return Ok(new AuthResponse(token.Token, token.Expires, customer.Role, customer.DisplayName));
@@ -54,14 +45,10 @@ namespace BitsBlog.WebApi.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request)
         {
-            var email = (request.Email ?? "").Trim().ToLowerInvariant();
-            var customer = await _db.Customers.FirstOrDefaultAsync(c => c.LoginId == email);
-            if (customer is null) return Unauthorized();
-            if (!VerifyPassword(request.Password ?? string.Empty, customer.PasswordHash, customer.PasswordSalt))
-                return Unauthorized();
-
-            var token = GenerateJwt(customer);
-            return Ok(new AuthResponse(token.Token, token.Expires, customer.Role, customer.DisplayName));
+            var result = await _customers.LoginAsync(request.Email, request.Password);
+            if (!result.ok || result.customer is null) return Unauthorized();
+            var token = GenerateJwt(result.customer);
+            return Ok(new AuthResponse(token.Token, token.Expires, result.customer.Role, result.customer.DisplayName));
         }
 
         [Authorize]
@@ -69,11 +56,9 @@ namespace BitsBlog.WebApi.Controllers
         public async Task<ActionResult<object>> Me()
         {
             var email = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-            var user = await _db.Customers.Where(c => c.LoginId == email)
-                .Select(c => new { c.LoginId, c.DisplayName, c.Role, c.Created })
-                .FirstOrDefaultAsync();
-            if (user is null) return NotFound();
-            return Ok(user);
+            var profile = await _customers.GetProfileAsync(email);
+            if (profile is null) return NotFound();
+            return Ok(new { profile.Value.LoginId, profile.Value.DisplayName, profile.Value.Role, profile.Value.Created });
         }
 
         private (string Token, DateTime Expires) GenerateJwt(Customer c)
@@ -97,29 +82,10 @@ namespace BitsBlog.WebApi.Controllers
             return (jwt, expires);
         }
 
-        private static (string Hash, string Salt) HashPassword(string password)
-        {
-            using var rng = RandomNumberGenerator.Create();
-            var saltBytes = new byte[16];
-            rng.GetBytes(saltBytes);
-            var hashBytes = Rfc2898DeriveBytes.Pbkdf2(Encoding.UTF8.GetBytes(password), saltBytes, 100_000, HashAlgorithmName.SHA256, 32);
-            return (Convert.ToBase64String(hashBytes), Convert.ToBase64String(saltBytes));
-        }
-
-        private static bool VerifyPassword(string password, string hashBase64, string saltBase64)
-        {
-            try
-            {
-                var salt = Convert.FromBase64String(saltBase64);
-                var hash = Rfc2898DeriveBytes.Pbkdf2(Encoding.UTF8.GetBytes(password), salt, 100_000, HashAlgorithmName.SHA256, 32);
-                return CryptographicOperations.FixedTimeEquals(hash, Convert.FromBase64String(hashBase64));
-            }
-            catch { return false; }
-        }
+        // Password hashing/verification moved into CustomerService
 
         public record RegisterRequest(string Email, string Password, string? DisplayName);
         public record LoginRequest(string Email, string Password);
         public record AuthResponse(string AccessToken, DateTime Expires, string Role, string DisplayName);
     }
 }
-
