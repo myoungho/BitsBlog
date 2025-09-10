@@ -96,7 +96,19 @@
             <li class="nav-item"><a class="nav-link" href="/Posts">Posts</a></li>
             <li class="nav-item"><a class="nav-link" href="/Posts/Create">New Post</a></li>
           </ul>
-          <div class="d-lg-flex align-items-center ms-lg-3 mt-2 mt-lg-0">
+          <div class="d-lg-flex align-items-center ms-lg-3 mt-2 mt-lg-0 gap-2">
+            @if (Context.Request.Cookies["jwt"] == null)
+            {
+              <a class="btn btn-outline-light btn-sm" href="/Account/Login">Login</a>
+              <a class="btn btn-light btn-sm" href="/Account/Register">Register</a>
+            }
+            else
+            {
+              <form method="post" action="/Account/Logout" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
+              </form>
+            }
             <button id="themeToggle" type="button" class="btn btn-outline-light btn-sm" aria-label="Toggle theme" title="Toggle theme">
               <i id="themeToggleIcon" class="bi" aria-hidden="true"></i>
             </button>

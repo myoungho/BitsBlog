@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using BitsBlog.Application.DTOs;
 using BitsBlog.Application.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BitsBlog.WebApi.Controllers
 {
@@ -29,6 +30,7 @@ namespace BitsBlog.WebApi.Controllers
             return Ok(post);
         }
 
+        [Authorize(Roles = "User,Admin")]
         [HttpPost]
         public async Task<ActionResult<PostDto>> Post([FromBody] CreatePostRequest request)
         {
@@ -37,6 +39,7 @@ namespace BitsBlog.WebApi.Controllers
             return CreatedAtAction(nameof(GetById), new { id = post.Id }, post);
         }
 
+        [Authorize(Roles = "User,Admin")]
         [HttpPut("{id}")]
         public async Task<ActionResult<PostDto>> Put(int id, [FromBody] UpdatePostRequest request)
         {
@@ -47,6 +50,7 @@ namespace BitsBlog.WebApi.Controllers
             return Ok(updated);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
