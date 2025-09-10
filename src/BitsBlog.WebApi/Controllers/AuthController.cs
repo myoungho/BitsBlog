@@ -74,7 +74,8 @@ namespace BitsBlog.WebApi.Controllers
             {
                 new Claim(ClaimTypes.NameIdentifier, c.LoginId),
                 new Claim(ClaimTypes.Name, c.DisplayName),
-                new Claim(ClaimTypes.Role, c.Role)
+                new Claim(ClaimTypes.Role, c.Role),
+                new Claim("cid", c.Id.ToString())
             };
             var expires = DateTime.UtcNow.AddMinutes(expiresMinutes);
             var token = new JwtSecurityToken(issuer, audience, claims, expires: expires, signingCredentials: credentials);

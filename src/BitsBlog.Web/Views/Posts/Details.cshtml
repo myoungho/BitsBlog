@@ -1,23 +1,73 @@
-﻿@model BitsBlog.Application.DTOs.PostDto
+@model BitsBlog.Web.Models.PostDetailsViewModel
 @{
     ViewData["Title"] = "Post Details";
 }
 
 <div class="d-flex gap-2 mb-3">
   <a class="btn btn-outline-secondary" href="/Posts">Back to Posts</a>
-  <a class="btn btn-primary" href="/Posts/Edit/@Model.Id">Edit</a>
-  <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm(\'Are you sure you want to delete?\');">
+  <a class="btn btn-primary" href="/Posts/Edit/@Model.Post.Id">Edit</a>
+  <form asp-action="Delete" asp-route-id="@Model.Post.Id" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete?');">
     @Html.AntiForgeryToken()
     <button type="submit" class="btn btn-danger">Delete</button>
   </form>
 </div>
 
-<div class="card">
+<div class="card mb-4">
   <div class="card-body">
-    <h1 class="h4">@Model.Title</h1>
-    <div class="text-muted mb-3">Created: @Model.Created.ToLocalTime()</div>
-    <div class="mb-0">@Html.Raw(Model.Content)</div>
+    <h1 class="h4 mb-1">@Model.Post.Title</h1>
+    <div class="text-muted mb-3">
+      @if (!string.IsNullOrWhiteSpace(Model.Post.AuthorDisplayName)) {
+        <text>By @Model.Post.AuthorDisplayName</text>
+      }
+      <span class="ms-2">Created: @Model.Post.Created.ToLocalTime()</span>
+    </div>
+    <div class="mb-0">@Html.Raw(Model.Post.Content)</div>
   </div>
 </div>
 
+<div class="card mb-3">
+  <div class="card-body">
+    <h2 class="h5 mb-3">Comments</h2>
+    @if ((Model.Comments?.Count ?? 0) == 0)
+    {
+      <div class="text-muted">No comments yet.</div>
+    }
+    else
+    {
+      <ul class="list-group list-group-flush">
+        @foreach (var c in Model.Comments)
+        {
+          <li class="list-group-item">
+            <div class="small text-muted mb-1">
+              @if (!string.IsNullOrWhiteSpace(c.AuthorDisplayName)) {
+                <text>@c.AuthorDisplayName</text>
+              } else {
+                <text>Anonymous</text>
+              }
+              <span class="ms-2">@c.Created.ToLocalTime()</span>
+            </div>
+            <div>@Html.Raw(c.Content)</div>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</div>
+
+@if (Context.Request.Cookies["jwt"] != null)
+{
+  <div class="card">
+    <div class="card-body">
+      <h3 class="h6 mb-2">Add a comment</h3>
+      <form asp-action="AddComment" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="postId" value="@Model.Post.Id" />
+        <div class="mb-2">
+          <textarea name="content" class="form-control" rows="3" placeholder="Write a comment..." required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">Post Comment</button>
+      </form>
+    </div>
+  </div>
+}
 

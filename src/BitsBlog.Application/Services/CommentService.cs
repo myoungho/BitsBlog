@@ -19,15 +19,24 @@ namespace BitsBlog.Application.Services
         {
             var comments = await _repository.GetAllAsync();
             comments = comments.Where(c => c.PostId == postId);
-            return comments.Select(c => new CommentDto(c.Id, c.PostId, c.Content, c.Created));
+            return comments.Select(c => new CommentDto(c.Id, c.PostId, c.Content, c.Created)
+            {
+                AuthorLoginId = c.AuthorLoginId,
+                AuthorDisplayName = c.AuthorDisplayName
+            });
         }
 
-        public async Task<CommentDto> CreateAsync(int postId, string content)
+        public async Task<CommentDto> CreateAsync(int postId, string content, string? authorLoginId = null, string? authorDisplayName = null, int? customerId = null)
         {
-            var comment = new Comment { PostId = postId, Content = content };
+            var comment = new Comment { PostId = postId, Content = content, AuthorLoginId = authorLoginId, AuthorDisplayName = authorDisplayName, CustomerId = customerId };
             var created = await _repository.InsertAsync(comment);
             await _repository.SaveDbContextChangesAsync();
-            return new CommentDto(created.Id, created.PostId, created.Content, created.Created);
+            return new CommentDto(created.Id, created.PostId, created.Content, created.Created)
+            {
+                AuthorLoginId = created.AuthorLoginId,
+                AuthorDisplayName = created.AuthorDisplayName,
+                CustomerId = created.CustomerId
+            };
         }
     }
 }

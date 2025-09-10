@@ -41,7 +41,9 @@ namespace BitsBlog.Web.Controllers
             var client = _clientFactory.CreateClient("api");
             var post = await client.GetFromJsonAsync<PostDto>($"posts/{id}");
             if (post is null) return NotFound();
-            return View(post);
+            var comments = await client.GetFromJsonAsync<IEnumerable<CommentDto>>($"posts/{id}/comments");
+            var vm = new PostDetailsViewModel { Post = post, Comments = comments?.ToList() ?? new List<CommentDto>() };
+            return View(vm);
         }
 
         [HttpGet]
@@ -52,6 +54,24 @@ namespace BitsBlog.Web.Controllers
             if (post is null) return NotFound();
             var vm = new EditPostViewModel { Id = post.Id, Title = post.Title, Content = post.Content };
             return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddComment(int postId, string content)
+        {
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                return RedirectToAction("Details", new { id = postId });
+            }
+            var client = _clientFactory.CreateClient("api");
+            var res = await client.PostAsJsonAsync($"posts/{postId}/comments", new { content });
+            if (!res.IsSuccessStatusCode)
+            {
+                // If unauthorized or other error, just redirect back
+                return RedirectToAction("Details", new { id = postId });
+            }
+            return RedirectToAction("Details", new { id = postId });
         }
 
         [HttpPost]

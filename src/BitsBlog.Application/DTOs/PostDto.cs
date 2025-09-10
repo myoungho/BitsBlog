@@ -8,6 +8,9 @@ namespace BitsBlog.Application.DTOs
         public string Title { get; }
         public string Content { get; }
         public DateTime Created { get; }
+        public string? AuthorLoginId { get; init; }
+        public string? AuthorDisplayName { get; init; }
+        public int? CustomerId { get; init; }
 
         public PostDto(int id, string title, string content, DateTime created)
         {

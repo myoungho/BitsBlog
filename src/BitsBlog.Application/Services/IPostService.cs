@@ -7,7 +7,7 @@ namespace BitsBlog.Application.Services
     public interface IPostService
     {
         Task<IEnumerable<PostDto>> GetPostsAsync();
-        Task<PostDto> CreateAsync(string title, string content);
+        Task<PostDto> CreateAsync(string title, string content, string? authorLoginId = null, string? authorDisplayName = null, int? customerId = null);
         Task<PostDto?> GetByIdAsync(int id);
         Task<PostDto?> UpdateAsync(int id, string title, string content);
         Task<bool> DeleteAsync(int id);

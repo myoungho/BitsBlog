@@ -37,7 +37,12 @@ namespace BitsBlog.WebApi.Controllers
         public async Task<ActionResult<PostDto>> Post([FromBody] CreatePostRequest request)
         {
             var safe = _sanitizer.Sanitize(request.Content);
-            var post = await _service.CreateAsync(request.Title, safe);
+            var loginId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var displayName = User?.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
+            int? customerId = null;
+            var cid = User?.FindFirst("cid")?.Value;
+            if (int.TryParse(cid, out var parsed)) customerId = parsed;
+            var post = await _service.CreateAsync(request.Title, safe, loginId, displayName, customerId);
             return CreatedAtAction(nameof(GetById), new { id = post.Id }, post);
         }
 

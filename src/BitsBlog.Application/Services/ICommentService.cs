@@ -7,6 +7,6 @@ namespace BitsBlog.Application.Services
     public interface ICommentService
     {
         Task<IEnumerable<CommentDto>> GetCommentsByPostIdAsync(int postId);
-        Task<CommentDto> CreateAsync(int postId, string content);
+        Task<CommentDto> CreateAsync(int postId, string content, string? authorLoginId = null, string? authorDisplayName = null, int? customerId = null);
     }
 }

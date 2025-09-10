@@ -86,6 +86,58 @@ namespace BitsBlog.Infrastructure.Migrations
                 {
                     b.Navigation("Comments");
                 });
+            modelBuilder.Entity("BitsBlog.Domain.Entities.Post", b =>
+                {
+                    b.Property<int?>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.HasIndex("CustomerId");
+                });
+
+            modelBuilder.Entity("BitsBlog.Domain.Entities.Comment", b =>
+                {
+                    b.Property<int?>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.HasIndex("CustomerId");
+                });
+
+            modelBuilder.Entity("BitsBlog.Domain.Entities.Post", b =>
+                {
+                    b.HasOne("BitsBlog.Domain.Entities.Customer", null)
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
+            modelBuilder.Entity("BitsBlog.Domain.Entities.Comment", b =>
+                {
+                    b.HasOne("BitsBlog.Domain.Entities.Customer", null)
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+            modelBuilder.Entity("BitsBlog.Domain.Entities.Post", b =>
+                {
+                    b.Property<string>("AuthorDisplayName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("AuthorLoginId")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+                });
+
+            modelBuilder.Entity("BitsBlog.Domain.Entities.Comment", b =>
+                {
+                    b.Property<string>("AuthorDisplayName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("AuthorLoginId")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+                });
             modelBuilder.Entity("BitsBlog.Domain.Entities.Customer", b =>
                 {
                     b.Property<int>("Id")
