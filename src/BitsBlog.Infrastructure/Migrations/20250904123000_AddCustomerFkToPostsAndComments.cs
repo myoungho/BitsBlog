@@ -1,7 +1,13 @@
+using System;
+using BitsBlog.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace BitsBlog.Infrastructure.Migrations
 {
+    [DbContext(typeof(BitsBlogDbContext))]
+    [Migration("20250904123000_AddCustomerFkToPostsAndComments")]
     public partial class AddCustomerFkToPostsAndComments : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -70,4 +76,3 @@ namespace BitsBlog.Infrastructure.Migrations
         }
     }
 }
-
