@@ -46,6 +46,7 @@ namespace BitsBlog.Web.Controllers
                 SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax,
                 Expires = auth.Expires
             });
+            // No additional cookie: navbar reads display name from JWT
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 return Redirect(returnUrl);
             return RedirectToAction("Index", "Home");
@@ -83,6 +84,7 @@ namespace BitsBlog.Web.Controllers
                 SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax,
                 Expires = auth.Expires
             });
+            // No additional cookie: navbar reads display name from JWT
             return RedirectToAction("Index", "Home");
         }
 
@@ -93,6 +95,14 @@ namespace BitsBlog.Web.Controllers
             Response.Cookies.Delete("jwt");
             return RedirectToAction("Index", "Home");
         }
+
+        [HttpGet]
+        public IActionResult Profile()
+        {
+            var jwt = Request.Cookies["jwt"];
+            var display = BitsBlog.Web.Services.JwtReader.TryGetDisplayName(jwt) ?? "User";
+            ViewData["DisplayName"] = display;
+            return View();
+        }
     }
 }
-
