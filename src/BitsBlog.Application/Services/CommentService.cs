@@ -38,5 +38,41 @@ namespace BitsBlog.Application.Services
                 CustomerId = created.CustomerId
             };
         }
+
+        public async Task<CommentDto?> GetByIdAsync(int id)
+        {
+            var c = await _repository.GetByIdAsync(id);
+            if (c is null) return null;
+            return new CommentDto(c.Id, c.PostId, c.Content, c.Created)
+            {
+                AuthorLoginId = c.AuthorLoginId,
+                AuthorDisplayName = c.AuthorDisplayName,
+                CustomerId = c.CustomerId
+            };
+        }
+
+        public async Task<CommentDto?> UpdateAsync(int id, string content)
+        {
+            var c = await _repository.GetByIdAsync(id);
+            if (c is null) return null;
+            c.Content = content;
+            await _repository.UpdateAsync(c);
+            await _repository.SaveDbContextChangesAsync();
+            return new CommentDto(c.Id, c.PostId, c.Content, c.Created)
+            {
+                AuthorLoginId = c.AuthorLoginId,
+                AuthorDisplayName = c.AuthorDisplayName,
+                CustomerId = c.CustomerId
+            };
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var c = await _repository.GetByIdAsync(id);
+            if (c is null) return false;
+            await _repository.DeleteAsync(c);
+            await _repository.SaveDbContextChangesAsync();
+            return true;
+        }
     }
 }

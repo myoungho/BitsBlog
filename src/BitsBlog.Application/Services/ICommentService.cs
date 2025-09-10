@@ -8,5 +8,8 @@ namespace BitsBlog.Application.Services
     {
         Task<IEnumerable<CommentDto>> GetCommentsByPostIdAsync(int postId);
         Task<CommentDto> CreateAsync(int postId, string content, string? authorLoginId = null, string? authorDisplayName = null, int? customerId = null);
+        Task<CommentDto?> GetByIdAsync(int id);
+        Task<CommentDto?> UpdateAsync(int id, string content);
+        Task<bool> DeleteAsync(int id);
     }
 }

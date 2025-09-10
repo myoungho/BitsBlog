@@ -40,5 +40,35 @@ namespace BitsBlog.WebApi.Controllers
             var created = await _service.CreateAsync(postId, content, loginId, displayName, customerId);
             return Created($"/api/posts/{postId}/comments/{created.Id}", created);
         }
+
+        [Authorize(Roles = "User,Admin")]
+        [HttpPut("{commentId}")]
+        public async Task<IActionResult> Put(int postId, int commentId, [FromBody] CreateCommentRequest req)
+        {
+            var existing = await _service.GetByIdAsync(commentId);
+            if (existing is null || existing.PostId != postId) return NotFound();
+            var isAdmin = User?.IsInRole("Admin") == true;
+            var loginId = User?.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+            if (!isAdmin && !string.Equals(existing.AuthorLoginId, loginId, StringComparison.OrdinalIgnoreCase))
+                return Forbid();
+            var content = _sanitizer.Sanitize(req.Content ?? string.Empty);
+            var updated = await _service.UpdateAsync(commentId, content);
+            return Ok(updated);
+        }
+
+        [Authorize(Roles = "User,Admin")]
+        [HttpDelete("{commentId}")]
+        public async Task<IActionResult> Delete(int postId, int commentId)
+        {
+            var existing = await _service.GetByIdAsync(commentId);
+            if (existing is null || existing.PostId != postId) return NotFound();
+            var isAdmin = User?.IsInRole("Admin") == true;
+            var loginId = User?.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+            if (!isAdmin && !string.Equals(existing.AuthorLoginId, loginId, StringComparison.OrdinalIgnoreCase))
+                return Forbid();
+            var ok = await _service.DeleteAsync(commentId);
+            if (!ok) return NotFound();
+            return NoContent();
+        }
     }
 }

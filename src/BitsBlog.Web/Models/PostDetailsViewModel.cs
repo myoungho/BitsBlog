@@ -7,6 +7,7 @@ namespace BitsBlog.Web.Models
     {
         public PostDto Post { get; set; } = null!;
         public List<CommentDto> Comments { get; set; } = new();
+        public string? CurrentUserLoginId { get; set; }
+        public bool IsAdmin { get; set; }
     }
 }
-

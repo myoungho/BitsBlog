@@ -56,6 +56,22 @@ namespace BitsBlog.Web.Controllers
             if (post is null) return NotFound();
             var comments = await client.GetFromJsonAsync<IEnumerable<CommentDto>>($"posts/{id}/comments");
             var vm = new PostDetailsViewModel { Post = post, Comments = comments?.ToList() ?? new List<CommentDto>() };
+            var token = HttpContext.Request.Cookies["jwt"];
+            if (!string.IsNullOrEmpty(token))
+            {
+                try
+                {
+                    var meResp = await client.GetAsync("auth/me");
+                    if (meResp.IsSuccessStatusCode)
+                    {
+                        var json = await meResp.Content.ReadFromJsonAsync<System.Text.Json.Nodes.JsonObject>();
+                        vm.CurrentUserLoginId = (string?)json?["loginId"] ?? (string?)json?["LoginId"];
+                        var roleVal = (string?)json?["role"] ?? (string?)json?["Role"];
+                        vm.IsAdmin = string.Equals(roleVal, "Admin", System.StringComparison.OrdinalIgnoreCase);
+                    }
+                }
+                catch { }
+            }
             return View(vm);
         }
 
@@ -127,6 +143,30 @@ namespace BitsBlog.Web.Controllers
             var client = _clientFactory.CreateClient("api");
             var res = await client.PostAsJsonAsync($"posts/{postId}/comments", new { content });
             // 성공/실패 무관히 상세로 복귀
+            return RedirectToAction("Details", new { id = postId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditComment(int postId, int commentId, string content)
+        {
+            var token = HttpContext.Request.Cookies["jwt"];
+            if (string.IsNullOrEmpty(token))
+                return RedirectToAction("Login", "Account", new { returnUrl = $"/Posts/Details/{postId}" });
+            var client = _clientFactory.CreateClient("api");
+            await client.PutAsJsonAsync($"posts/{postId}/comments/{commentId}", new { content });
+            return RedirectToAction("Details", new { id = postId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteComment(int postId, int commentId)
+        {
+            var token = HttpContext.Request.Cookies["jwt"];
+            if (string.IsNullOrEmpty(token))
+                return RedirectToAction("Login", "Account", new { returnUrl = $"/Posts/Details/{postId}" });
+            var client = _clientFactory.CreateClient("api");
+            await client.DeleteAsync($"posts/{postId}/comments/{commentId}");
             return RedirectToAction("Details", new { id = postId });
         }
     }

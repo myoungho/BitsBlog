@@ -5,11 +5,14 @@
 
 <div class="d-flex gap-2 mb-3">
   <a class="btn btn-outline-secondary" href="/Posts">Back to Posts</a>
-  <a class="btn btn-primary" href="/Posts/Edit/@Model.Post.Id">Edit</a>
-  <form asp-action="Delete" asp-route-id="@Model.Post.Id" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete?');">
-    @Html.AntiForgeryToken()
-    <button type="submit" class="btn btn-danger">Delete</button>
-  </form>
+  @if (Model.IsAdmin || (!string.IsNullOrWhiteSpace(Model.CurrentUserLoginId) && string.Equals(Model.CurrentUserLoginId, Model.Post.AuthorLoginId, System.StringComparison.OrdinalIgnoreCase)))
+  {
+    <a class="btn btn-primary" href="/Posts/Edit/@Model.Post.Id">Edit</a>
+    <form asp-action="Delete" asp-route-id="@Model.Post.Id" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete?');">
+      @Html.AntiForgeryToken()
+      <button type="submit" class="btn btn-danger">Delete</button>
+    </form>
+  }
 </div>
 
 <div class="card mb-4">
@@ -46,7 +49,27 @@
               }
               <span class="ms-2">@c.Created.ToLocalTime()</span>
             </div>
-            <div>@Html.Raw(c.Content)</div>
+            <div class="mb-2">@Html.Raw(c.Content)</div>
+            @if (Model.IsAdmin || (!string.IsNullOrWhiteSpace(Model.CurrentUserLoginId) && string.Equals(Model.CurrentUserLoginId, c.AuthorLoginId, System.StringComparison.OrdinalIgnoreCase)))
+            {
+              <div class="d-flex gap-2">
+                <form asp-action="DeleteComment" method="post" class="d-inline" onsubmit="return confirm('Delete this comment?');">
+                  @Html.AntiForgeryToken()
+                  <input type="hidden" name="postId" value="@Model.Post.Id" />
+                  <input type="hidden" name="commentId" value="@c.Id" />
+                  <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+                </form>
+                <form asp-action="EditComment" method="post" class="d-inline w-100">
+                  @Html.AntiForgeryToken()
+                  <input type="hidden" name="postId" value="@Model.Post.Id" />
+                  <input type="hidden" name="commentId" value="@c.Id" />
+                  <div class="input-group input-group-sm">
+                    <input name="content" class="form-control" value="@c.Content" />
+                    <button type="submit" class="btn btn-outline-primary">Save</button>
+                  </div>
+                </form>
+              </div>
+            }
           </li>
         }
       </ul>
@@ -70,4 +93,3 @@
     </div>
   </div>
 }
-
