@@ -62,6 +62,11 @@ namespace BitsBlog.Web.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
+            var token0 = HttpContext.Request.Cookies["jwt"];
+            if (string.IsNullOrEmpty(token0))
+            {
+                return RedirectToAction("Login", "Account", new { returnUrl = $"/Posts/Edit/{id}" });
+            }
             var client = _clientFactory.CreateClient("api");
             var post = await client.GetFromJsonAsync<PostDto>($"posts/{id}");
             if (post is null) return NotFound();
@@ -69,28 +74,17 @@ namespace BitsBlog.Web.Controllers
             return View(vm);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddComment(int postId, string content)
-        {
-            if (string.IsNullOrWhiteSpace(content))
-            {
-                return RedirectToAction("Details", new { id = postId });
-            }
-            var client = _clientFactory.CreateClient("api");
-            var res = await client.PostAsJsonAsync($"posts/{postId}/comments", new { content });
-            if (!res.IsSuccessStatusCode)
-            {
-                // If unauthorized or other error, just redirect back
-                return RedirectToAction("Details", new { id = postId });
-            }
-            return RedirectToAction("Details", new { id = postId });
-        }
+        
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(EditPostViewModel model)
         {
+            var token1 = HttpContext.Request.Cookies["jwt"];
+            if (string.IsNullOrEmpty(token1))
+            {
+                return RedirectToAction("Login", "Account", new { returnUrl = $"/Posts/Edit/{model?.Id}" });
+            }
             if (!ModelState.IsValid) return View(model);
             var client = _clientFactory.CreateClient("api");
             var res = await client.PutAsJsonAsync($"posts/{model.Id}", new { model.Title, model.Content });
@@ -104,12 +98,36 @@ namespace BitsBlog.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
+            var token2 = HttpContext.Request.Cookies["jwt"];
+            if (string.IsNullOrEmpty(token2))
+            {
+                return RedirectToAction("Login", "Account", new { returnUrl = $"/Posts/Details/{id}" });
+            }
             var client = _clientFactory.CreateClient("api");
             var res = await client.DeleteAsync($"posts/{id}");
             if (res.StatusCode == System.Net.HttpStatusCode.NotFound)
                 return NotFound();
             res.EnsureSuccessStatusCode();
             return RedirectToAction("Index", "Home");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddComment(int postId, string content)
+        {
+            var token3 = HttpContext.Request.Cookies["jwt"];
+            if (string.IsNullOrEmpty(token3))
+            {
+                return RedirectToAction("Login", "Account", new { returnUrl = $"/Posts/Details/{postId}" });
+            }
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                return RedirectToAction("Details", new { id = postId });
+            }
+            var client = _clientFactory.CreateClient("api");
+            var res = await client.PostAsJsonAsync($"posts/{postId}/comments", new { content });
+            // 성공/실패 무관히 상세로 복귀
+            return RedirectToAction("Details", new { id = postId });
         }
     }
 }
