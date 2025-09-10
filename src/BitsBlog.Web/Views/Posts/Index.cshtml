@@ -1,16 +1,16 @@
-@model IEnumerable<BitsBlog.Application.DTOs.PostDto>
+﻿@model IEnumerable<BitsBlog.Application.DTOs.PostDto>
 @{
-    ViewData["Title"] = "게시글 목록";
+    ViewData["Title"] = "Posts";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3 m-0">게시글 목록</h1>
-    <a class="btn btn-primary" href="/Posts/Create">새 글</a>
+    <h1 class="h3 m-0">Posts</h1>
+    <a class="btn btn-primary" href="/Posts/Create">New Post</a>
     </div>
 
 @if (Model is null || !Model.Any())
 {
-    <div class="alert alert-info">게시글이 없습니다.</div>
+    <div class="alert alert-info">No posts yet.</div>
 }
 else
 {
@@ -24,4 +24,5 @@ else
     }
     </ul>
 }
+
 
