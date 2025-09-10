@@ -51,17 +51,37 @@ namespace BitsBlog.WebApi.Controllers
         public async Task<ActionResult<PostDto>> Put(int id, [FromBody] UpdatePostRequest request)
         {
             if (id <= 0) return BadRequest();
+            // Authorize: only author or admin can update
+            var existing = await _service.GetByIdAsync(id);
+            if (existing is null) return NotFound();
+            var isAdmin = User?.IsInRole("Admin") == true;
+            var loginId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!isAdmin)
+            {
+                if (!string.Equals(existing.AuthorLoginId, loginId, System.StringComparison.OrdinalIgnoreCase))
+                    return Forbid();
+            }
             var safe = _sanitizer.Sanitize(request.Content);
             var updated = await _service.UpdateAsync(id, request.Title, safe);
             if (updated is null) return NotFound();
             return Ok(updated);
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "User,Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             if (id <= 0) return BadRequest();
+            // Authorize: only author or admin can delete
+            var existing = await _service.GetByIdAsync(id);
+            if (existing is null) return NotFound();
+            var isAdmin = User?.IsInRole("Admin") == true;
+            var loginId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!isAdmin)
+            {
+                if (!string.Equals(existing.AuthorLoginId, loginId, System.StringComparison.OrdinalIgnoreCase))
+                    return Forbid();
+            }
             var ok = await _service.DeleteAsync(id);
             if (!ok) return NotFound();
             return NoContent();
