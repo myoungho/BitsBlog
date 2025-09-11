@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BitsBlog.Web.Controllers
 {
@@ -29,6 +30,7 @@ namespace BitsBlog.Web.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public IActionResult Login(string? returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
@@ -40,6 +42,7 @@ namespace BitsBlog.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AllowAnonymous]
         public async Task<IActionResult> Login(string email, string password, string? returnUrl = null)
         {
             var client = Api();
@@ -63,6 +66,7 @@ namespace BitsBlog.Web.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public IActionResult Register()
         {
             return View();
@@ -72,6 +76,7 @@ namespace BitsBlog.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [AllowAnonymous]
         public async Task<IActionResult> Register(string email, string password, string displayName)
         {
             var client = Api();
@@ -94,6 +99,7 @@ namespace BitsBlog.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public IActionResult Logout()
         {
             Response.Cookies.Delete("jwt");
@@ -101,6 +107,7 @@ namespace BitsBlog.Web.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public IActionResult Profile()
         {
             var jwt = Request.Cookies["jwt"];

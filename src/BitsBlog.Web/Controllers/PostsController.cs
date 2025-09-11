@@ -5,6 +5,7 @@ using BitsBlog.Application.DTOs;
 using BitsBlog.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BitsBlog.Web.Controllers
 {
@@ -23,25 +24,17 @@ namespace BitsBlog.Web.Controllers
             return View(posts);
         }
 
+        [Authorize]
         public IActionResult Create()
         {
-            var token = HttpContext.Request.Cookies["jwt"];
-            if (string.IsNullOrEmpty(token))
-            {
-                return RedirectToAction("Login", "Account", new { returnUrl = "/Posts/Create" });
-            }
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Create(CreatePostViewModel model)
         {
-            var token = HttpContext.Request.Cookies["jwt"];
-            if (string.IsNullOrEmpty(token))
-            {
-                return RedirectToAction("Login", "Account", new { returnUrl = "/Posts/Create" });
-            }
             if (!ModelState.IsValid) return View(model);
             var client = _clientFactory.CreateClient("api");
             await client.PostAsJsonAsync("posts", new { model.Title, model.Content });
@@ -76,13 +69,9 @@ namespace BitsBlog.Web.Controllers
         }
 
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> Edit(int id)
         {
-            var token0 = HttpContext.Request.Cookies["jwt"];
-            if (string.IsNullOrEmpty(token0))
-            {
-                return RedirectToAction("Login", "Account", new { returnUrl = $"/Posts/Edit/{id}" });
-            }
             var client = _clientFactory.CreateClient("api");
             var post = await client.GetFromJsonAsync<PostDto>($"posts/{id}");
             if (post is null) return NotFound();
@@ -94,13 +83,9 @@ namespace BitsBlog.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Edit(EditPostViewModel model)
         {
-            var token1 = HttpContext.Request.Cookies["jwt"];
-            if (string.IsNullOrEmpty(token1))
-            {
-                return RedirectToAction("Login", "Account", new { returnUrl = $"/Posts/Edit/{model?.Id}" });
-            }
             if (!ModelState.IsValid) return View(model);
             var client = _clientFactory.CreateClient("api");
             var res = await client.PutAsJsonAsync($"posts/{model.Id}", new { model.Title, model.Content });
@@ -112,13 +97,9 @@ namespace BitsBlog.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Delete(int id)
         {
-            var token2 = HttpContext.Request.Cookies["jwt"];
-            if (string.IsNullOrEmpty(token2))
-            {
-                return RedirectToAction("Login", "Account", new { returnUrl = $"/Posts/Details/{id}" });
-            }
             var client = _clientFactory.CreateClient("api");
             var res = await client.DeleteAsync($"posts/{id}");
             if (res.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -129,6 +110,7 @@ namespace BitsBlog.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> AddComment(int postId, string content)
         {
             var token3 = HttpContext.Request.Cookies["jwt"];
@@ -148,6 +130,7 @@ namespace BitsBlog.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> EditComment(int postId, int commentId, string content)
         {
             var token = HttpContext.Request.Cookies["jwt"];
@@ -160,6 +143,7 @@ namespace BitsBlog.Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> DeleteComment(int postId, int commentId)
         {
             var token = HttpContext.Request.Cookies["jwt"];
