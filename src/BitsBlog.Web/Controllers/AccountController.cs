@@ -157,15 +157,15 @@ namespace BitsBlog.Web.Controllers
             var res = await client.PutAsJsonAsync("auth/password", new ChangePasswordDto { CurrentPassword = currentPassword, NewPassword = newPassword });
             if (res.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
-                TempData["Error"] = "Current password is incorrect.";
+                TempData["PasswordError"] = "Current password is incorrect.";
             }
             else if (!res.IsSuccessStatusCode)
             {
-                TempData["Error"] = "Failed to change password.";
+                TempData["PasswordError"] = "Failed to change password.";
             }
             else
             {
-                TempData["Success"] = "Password changed successfully.";
+                TempData["PasswordSuccess"] = "Password changed successfully.";
             }
             return RedirectToAction(nameof(Profile));
         }

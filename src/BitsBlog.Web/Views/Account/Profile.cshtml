@@ -47,16 +47,32 @@
                 <h5 class="modal-title" id="changePasswordLabel">Change Password</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
-              <form method="post" asp-action="ChangePassword">
+              <form method="post" asp-action="ChangePassword" id="changePasswordForm" novalidate class="needs-validation">
                 @Html.AntiForgeryToken()
                 <div class="modal-body">
+                  @if (TempData["PasswordError"] is string pwdErr)
+                  {
+                    <div class="alert alert-danger" role="alert">@pwdErr</div>
+                  }
+                  @if (TempData["PasswordSuccess"] is string pwdOk)
+                  {
+                    <div class="alert alert-success" role="alert">@pwdOk</div>
+                  }
                   <div class="mb-3">
                     <label class="form-label" for="currentPassword">Current password</label>
                     <input class="form-control" id="currentPassword" name="currentPassword" type="password" required />
+                    <div class="invalid-feedback">Please enter your current password.</div>
                   </div>
                   <div class="mb-3">
                     <label class="form-label" for="newPassword">New password</label>
-                    <input class="form-control" id="newPassword" name="newPassword" type="password" minlength="6" required />
+                    <input class="form-control" id="newPassword" name="newPassword" type="password" required />
+                    <div class="form-text">Must be at least 8 characters and include letters and numbers.</div>
+                    <div class="invalid-feedback">Password must be at least 8 characters and include letters and numbers, and differ from the current password.</div>
+                  </div>
+                  <div class="mb-1">
+                    <label class="form-label" for="confirmPassword">Confirm new password</label>
+                    <input class="form-control" id="confirmPassword" name="confirmPassword" type="password" required />
+                    <div class="invalid-feedback">Passwords do not match.</div>
                   </div>
                 </div>
                 <div class="modal-footer">
@@ -75,3 +91,49 @@
 
 
 
+
+@section Scripts{
+  <script>
+    (function(){
+      var form = document.getElementById('changePasswordForm');
+      if (!form) return;
+      var current = document.getElementById('currentPassword');
+      var next = document.getElementById('newPassword');
+      var confirm = document.getElementById('confirmPassword');
+
+      function validComplexity(pw){
+        if (!pw) return false;
+        if (pw.length < 8) return false;
+        var hasLetter = /[A-Za-z]/.test(pw);
+        var hasDigit = /\d/.test(pw);
+        return hasLetter && hasDigit;
+      }
+
+      function validate(){
+        var ok = true;
+        // current required
+        if (!current.value){ current.classList.add('is-invalid'); ok = false; } else { current.classList.remove('is-invalid'); }
+        // new complexity and difference
+        if (!validComplexity(next.value) || next.value === current.value){ next.classList.add('is-invalid'); ok = false; } else { next.classList.remove('is-invalid'); }
+        // confirm match
+        if (!confirm.value || confirm.value !== next.value){ confirm.classList.add('is-invalid'); ok = false; } else { confirm.classList.remove('is-invalid'); }
+        return ok;
+      }
+
+      form.addEventListener('submit', function(e){
+        if (!validate()){
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      });
+
+      // Auto-open modal when server reported password feedback
+      var modalEl = document.getElementById('changePasswordModal');
+      var hasServerMsg = !!document.querySelector('#changePasswordModal .alert');
+      if (hasServerMsg && modalEl){
+        var m = new bootstrap.Modal(modalEl);
+        m.show();
+      }
+    })();
+  </script>
+}
