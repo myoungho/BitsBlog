@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using BitsBlog.Domain.Entities;
 using BitsBlog.Application.DTO;
 using System.Collections.Generic;
+using BitsBlog.Application.DTO.Common;
 
 namespace BitsBlog.Application.Interfaces
 {
@@ -17,7 +18,7 @@ namespace BitsBlog.Application.Interfaces
         Task<ProfileDto?> GetProfileAsync(ProfileQueryDto query, System.Threading.CancellationToken ct = default);
 
         // Admin management
-        Task<IReadOnlyList<UserDto>> ListUsersAsync(UserQueryDto query, System.Threading.CancellationToken ct = default);
+        Task<PagedResult<UserDto>> ListUsersAsync(UserQueryDto query, System.Threading.CancellationToken ct = default);
         Task<UserDto?> GetUserByIdAsync(int id, System.Threading.CancellationToken ct = default);
         Task<int> CountUsersAsync(UserQueryDto query, System.Threading.CancellationToken ct = default);
         Task<bool> SetRoleAsync(int id, string role, System.Threading.CancellationToken ct = default);

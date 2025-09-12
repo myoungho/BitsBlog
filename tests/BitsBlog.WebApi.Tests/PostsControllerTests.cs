@@ -47,9 +47,13 @@ namespace BitsBlog.WebApi.Tests
 
             var serviceMock = new Mock<IPostService>();
             serviceMock.Setup(s => s.GetPagedAsync(It.IsAny<PostQueryDto>(), It.IsAny<CancellationToken>()))
-                       .ReturnsAsync(posts);
-            serviceMock.Setup(s => s.CountAsync(It.IsAny<PostQueryDto>(), It.IsAny<CancellationToken>()))
-                       .ReturnsAsync(posts.Count);
+                       .ReturnsAsync(new BitsBlog.Application.DTO.Common.PagedResult<PostDto>
+                       {
+                           Items = posts,
+                           Total = posts.Count,
+                           Page = 1,
+                           PageSize = 10
+                       });
 
             var controller = new PostsController(serviceMock.Object, new Ganss.Xss.HtmlSanitizer())
             {
@@ -61,7 +65,7 @@ namespace BitsBlog.WebApi.Tests
 
             var result = await controller.Get(new PostQueryDto());
 
-            Assert.Equal(posts.Count, result.Count());
+            Assert.Equal(posts.Count, result.Items.Count);
         }
 
         [Fact]

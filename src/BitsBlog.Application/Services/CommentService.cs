@@ -5,6 +5,7 @@ using BitsBlog.Application.DTO;
 using BitsBlog.Application.Interfaces;
 using BitsBlog.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using BitsBlog.Application.Common;
 
 namespace BitsBlog.Application.Services
 {
@@ -29,31 +30,44 @@ namespace BitsBlog.Application.Services
             });
         }
 
-        public async Task<IReadOnlyList<CommentDto>> GetPagedAsync(BitsBlog.Application.DTO.CommentQueryDto queryDto, System.Threading.CancellationToken ct = default)
+        public async Task<BitsBlog.Application.DTO.Common.PagedResult<CommentDto>> GetPagedAsync(BitsBlog.Application.DTO.CommentQueryDto queryDto, System.Threading.CancellationToken ct = default)
         {
-            var skip = (queryDto.Page - 1) * queryDto.PageSize; if (skip < 0) skip = 0;
-            var take = queryDto.PageSize <= 0 ? 10 : queryDto.PageSize;
-            var query = _repository.AsNoTracking().Where(c => c.PostId == queryDto.PostId);
+            var q = _repository.AsNoTracking().Where(c => c.PostId == queryDto.PostId);
             if (!string.IsNullOrWhiteSpace(queryDto.Q))
             {
                 var term = queryDto.Q.Trim();
-                query = query.Where(c => EF.Functions.Like(c.Content, "%" + term + "%") || EF.Functions.Like(c.AuthorDisplayName!, "%" + term + "%"));
+                q = q.Where(c => EF.Functions.Like(c.Content, "%" + term + "%") || EF.Functions.Like(c.AuthorDisplayName!, "%" + term + "%"));
             }
-            if (string.Equals(queryDto.Sort, "created_asc", System.StringComparison.OrdinalIgnoreCase))
-                query = query.OrderBy(c => c.Created);
-            else
-                query = query.OrderByDescending(c => c.Created);
 
-            var sel = query
-                .Skip(skip)
-                .Take(take)
-                .Select(c => new CommentDto(c.Id, c.PostId, c.Content, c.Created)
-                {
-                    AuthorLoginId = c.AuthorLoginId,
-                    AuthorDisplayName = c.AuthorDisplayName,
-                    CustomerId = c.CustomerId
-                });
-            return await sel.ToListAsync(ct);
+            var projected = q.Select(c => new CommentDto(c.Id, c.PostId, c.Content, c.Created)
+            {
+                AuthorLoginId = c.AuthorLoginId,
+                AuthorDisplayName = c.AuthorDisplayName,
+                CustomerId = c.CustomerId
+            });
+
+            string defaultSort = nameof(CommentDto.Created);
+            string? sortBy = null;
+            string? sortOrder = null;
+            if (!string.IsNullOrWhiteSpace(queryDto.Sort))
+            {
+                var s = queryDto.Sort.Trim();
+                if (s.EndsWith("_asc", System.StringComparison.OrdinalIgnoreCase)) sortOrder = "asc";
+                else if (s.EndsWith("_desc", System.StringComparison.OrdinalIgnoreCase)) sortOrder = "desc";
+                if (s.StartsWith("created", System.StringComparison.OrdinalIgnoreCase)) sortBy = nameof(CommentDto.Created);
+            }
+
+            var paged = await RepositoryPagingExtensions.PagedAsync<Comment, CommentDto>(
+                _repository,
+                projected,
+                sortBy,
+                sortOrder,
+                defaultSort,
+                queryDto.Page,
+                queryDto.PageSize,
+                strict: true);
+
+            return paged;
         }
 
         public Task<int> CountAsync(BitsBlog.Application.DTO.CommentQueryDto queryDto, System.Threading.CancellationToken ct = default)

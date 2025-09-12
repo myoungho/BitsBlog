@@ -26,9 +26,8 @@ namespace BitsBlog.Web.Controllers
                       (string.IsNullOrWhiteSpace(sort) ? string.Empty : $"&sort={Uri.EscapeDataString(sort)}");
             var res = await client.GetAsync(url);
             res.EnsureSuccessStatusCode();
-            var items = await res.Content.ReadFromJsonAsync<IReadOnlyList<PostDto>>() ?? Array.Empty<PostDto>();
-            var total = BitsBlog.Web.Services.PagingUtils.ParseTotalCount(res);
-            var vm = new BitsBlog.Web.Models.PagedResult<PostDto>(items, page, pageSize, total);
+            var vm = await res.Content.ReadFromJsonAsync<BitsBlog.Web.Models.PagedResult<PostDto>>()
+                     ?? new BitsBlog.Web.Models.PagedResult<PostDto>(Array.Empty<PostDto>(), page, pageSize, 0);
             ViewData["q"] = q;
             ViewData["sort"] = sort;
             return View(vm);
@@ -57,8 +56,8 @@ namespace BitsBlog.Web.Controllers
             var client = _clientFactory.CreateClient("api");
             var post = await client.GetFromJsonAsync<PostDto>($"posts/{id}");
             if (post is null) return NotFound();
-            var comments = await client.GetFromJsonAsync<IEnumerable<CommentDto>>($"posts/{id}/comments");
-            var vm = new PostDetailsViewModel { Post = post, Comments = comments?.ToList() ?? new List<CommentDto>() };
+            var commentsPaged = await client.GetFromJsonAsync<BitsBlog.Web.Models.PagedResult<CommentDto>>($"comments?page=1&pageSize=100&postId={id}");
+            var vm = new PostDetailsViewModel { Post = post, Comments = commentsPaged?.Items?.ToList() ?? new List<CommentDto>() };
             var token = HttpContext.Request.Cookies["jwt"];
             if (!string.IsNullOrEmpty(token))
             {
@@ -98,7 +97,7 @@ namespace BitsBlog.Web.Controllers
         {
             if (!ModelState.IsValid) return View(model);
             var client = _clientFactory.CreateClient("api");
-            var res = await client.PutAsJsonAsync($"posts/{model.Id}", new PostUpdateDto { Id = model.Id, Title = model.Title, Content = model.Content });
+            var res = await client.PutAsJsonAsync($"posts", new PostUpdateDto { Id = model.Id, Title = model.Title, Content = model.Content });
             if (res.StatusCode == System.Net.HttpStatusCode.NotFound)
                 return NotFound();
             res.EnsureSuccessStatusCode();
@@ -133,7 +132,7 @@ namespace BitsBlog.Web.Controllers
                 return RedirectToAction("Details", new { id = postId });
             }
             var client = _clientFactory.CreateClient("api");
-            var res = await client.PostAsJsonAsync($"posts/{postId}/comments", new CommentCreateDto { PostId = postId, Content = content });
+            var res = await client.PostAsJsonAsync($"comments", new CommentCreateDto { PostId = postId, Content = content });
             // 성공/실패 무관히 상세로 복귀
             return RedirectToAction("Details", new { id = postId });
         }
@@ -147,7 +146,7 @@ namespace BitsBlog.Web.Controllers
             if (string.IsNullOrEmpty(token))
                 return RedirectToAction("Login", "Account", new { returnUrl = $"/Posts/Details/{postId}" });
             var client = _clientFactory.CreateClient("api");
-            await client.PutAsJsonAsync($"posts/{postId}/comments/{commentId}", new CommentUpdateDto { CommentId = commentId, Content = content });
+            await client.PutAsJsonAsync($"comments", new CommentUpdateDto { PostId = postId, CommentId = commentId, Content = content });
             return RedirectToAction("Details", new { id = postId });
         }
 
@@ -160,7 +159,7 @@ namespace BitsBlog.Web.Controllers
             if (string.IsNullOrEmpty(token))
                 return RedirectToAction("Login", "Account", new { returnUrl = $"/Posts/Details/{postId}" });
             var client = _clientFactory.CreateClient("api");
-            await client.DeleteAsync($"posts/{postId}/comments/{commentId}");
+            await client.DeleteAsync($"comments/{commentId}");
             return RedirectToAction("Details", new { id = postId });
         }
     }

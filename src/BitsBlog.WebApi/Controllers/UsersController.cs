@@ -3,6 +3,7 @@ using BitsBlog.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using BitsBlog.Application.DTO;
+using BitsBlog.Application.DTO.Common;
 
 namespace BitsBlog.WebApi.Controllers
 {
@@ -21,17 +22,15 @@ namespace BitsBlog.WebApi.Controllers
 
         /// <summary>사용자 목록(관리자)</summary>
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<UserDto>), 200)]
+        [ProducesResponseType(typeof(PagedResult<UserDto>), 200)]
         public async Task<IActionResult> Get([FromQuery] UserQueryDto query)
         {
             if (query.Page < 1) query.Page = 1;
             if (query.PageSize < 1) query.PageSize = 10;
             if (query.PageSize > 100) query.PageSize = 100;
             var ct = HttpContext.RequestAborted;
-            var total = await _customers.CountUsersAsync(query, ct);
-            var list = await _customers.ListUsersAsync(query, ct);
-            Response.Headers["X-Total-Count"] = total.ToString();
-            return Ok(list);
+            var paged = await _customers.ListUsersAsync(query, ct);
+            return Ok(paged);
         }
 
         [HttpGet("{id:int}")]
@@ -42,14 +41,14 @@ namespace BitsBlog.WebApi.Controllers
         }
 
         /// <summary>사용자 역할 변경</summary>
-        [HttpPut("{id:int}/role")]
+        [HttpPut("role")]
         [Consumes("application/json")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> SetRole(int id, [FromBody] SetUserRoleDto req)
+        public async Task<IActionResult> SetRole([FromBody] SetUserRoleDto req)
         {
-            if (string.IsNullOrWhiteSpace(req.Role)) return BadRequest();
-            var ok = await _customers.SetRoleAsync(id, req.Role, HttpContext.RequestAborted);
+            if (req.Id <= 0 || string.IsNullOrWhiteSpace(req.Role)) return BadRequest();
+            var ok = await _customers.SetRoleAsync(req.Id, req.Role, HttpContext.RequestAborted);
             if (!ok) return NotFound();
             return NoContent();
         }

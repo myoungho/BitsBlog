@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 using BitsBlog.Application.Interfaces;
 using BitsBlog.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using BitsBlog.Application.Common;
-using BitsBlog.Application.DTO;
 
 namespace BitsBlog.Application.Services
 {
@@ -90,47 +88,36 @@ namespace BitsBlog.Application.Services
             return r;
         }
 
-        public async Task<BitsBlog.Application.DTO.Common.PagedResult<BitsBlog.Application.DTO.UserDto>> ListUsersAsync(BitsBlog.Application.DTO.UserQueryDto queryParams, System.Threading.CancellationToken ct = default)
+        public async Task<IReadOnlyList<BitsBlog.Application.DTO.UserDto>> ListUsersAsync(BitsBlog.Application.DTO.UserQueryDto queryParams, System.Threading.CancellationToken ct = default)
         {
-            // pageSize 가드(기존 로직 준수)
-            var pageSize = queryParams.PageSize;
-            if (pageSize <= 0) pageSize = 100;
-            if (pageSize > 500) pageSize = 500;
-
-            var q = _repo.AsNoTracking();
+            var skip = (queryParams.Page - 1) * queryParams.PageSize;
+            var take = queryParams.PageSize;
+            if (take <= 0) take = 100;
+            if (take > 500) take = 500;
+            var query = _repo.AsNoTracking();
             if (!string.IsNullOrWhiteSpace(queryParams.Q))
             {
                 var term = queryParams.Q.Trim();
-                q = q.Where(c => EF.Functions.Like(c.LoginId, "%" + term + "%") || EF.Functions.Like(c.DisplayName, "%" + term + "%"));
+                query = query.Where(c => EF.Functions.Like(c.LoginId, "%" + term + "%") || EF.Functions.Like(c.DisplayName, "%" + term + "%"));
             }
+            if (string.Equals(queryParams.Sort, "created_asc", System.StringComparison.OrdinalIgnoreCase))
+                query = query.OrderBy(c => c.Created);
+            else if (string.Equals(queryParams.Sort, "login_asc", System.StringComparison.OrdinalIgnoreCase))
+                query = query.OrderBy(c => c.LoginId);
+            else if (string.Equals(queryParams.Sort, "login_desc", System.StringComparison.OrdinalIgnoreCase))
+                query = query.OrderByDescending(c => c.LoginId);
+            else if (string.Equals(queryParams.Sort, "name_asc", System.StringComparison.OrdinalIgnoreCase))
+                query = query.OrderBy(c => c.DisplayName);
+            else if (string.Equals(queryParams.Sort, "name_desc", System.StringComparison.OrdinalIgnoreCase))
+                query = query.OrderByDescending(c => c.DisplayName);
+            else
+                query = query.OrderByDescending(c => c.Created);
 
-            var projected = q.Select(c => new BitsBlog.Application.DTO.UserDto(c.Id, c.LoginId, c.DisplayName, c.Role, c.Created));
-
-            string defaultSort = nameof(BitsBlog.Application.DTO.UserDto.Created);
-            string? sortBy = null;
-            string? sortOrder = null;
-            if (!string.IsNullOrWhiteSpace(queryParams.Sort))
-            {
-                var s = queryParams.Sort.Trim();
-                if (s.EndsWith("_asc", System.StringComparison.OrdinalIgnoreCase)) sortOrder = "asc";
-                else if (s.EndsWith("_desc", System.StringComparison.OrdinalIgnoreCase)) sortOrder = "desc";
-
-                if (s.StartsWith("created", System.StringComparison.OrdinalIgnoreCase)) sortBy = nameof(BitsBlog.Application.DTO.UserDto.Created);
-                else if (s.StartsWith("login", System.StringComparison.OrdinalIgnoreCase)) sortBy = nameof(BitsBlog.Application.DTO.UserDto.LoginId);
-                else if (s.StartsWith("name", System.StringComparison.OrdinalIgnoreCase)) sortBy = nameof(BitsBlog.Application.DTO.UserDto.DisplayName);
-            }
-
-            var paged = await RepositoryPagingExtensions.PagedAsync<Customer, BitsBlog.Application.DTO.UserDto>(
-                _repo,
-                projected,
-                sortBy,
-                sortOrder,
-                defaultSort,
-                queryParams.Page,
-                pageSize,
-                strict: true);
-
-            return paged;
+            var sel = query
+                .Skip(skip)
+                .Take(take)
+                .Select(c => new BitsBlog.Application.DTO.UserDto(c.Id, c.LoginId, c.DisplayName, c.Role, c.Created));
+            return await sel.ToListAsync(ct);
         }
 
         public async Task<BitsBlog.Application.DTO.UserDto?> GetUserByIdAsync(int id, System.Threading.CancellationToken ct = default)
@@ -231,16 +218,3 @@ namespace BitsBlog.Application.Services
             var id = NormalizeEmail(dto.LoginId ?? string.Empty);
             var entity = await _repo.AsTracking().FirstOrDefaultAsync(c => c.LoginId == id, ct);
             if (entity is null) return BitsBlog.Application.DTO.ResultDto.Fail("Not found");
-            if (!VerifyPassword(dto.CurrentPassword ?? string.Empty, entity.PasswordHash, entity.PasswordSalt))
-                return BitsBlog.Application.DTO.ResultDto.Fail("Invalid current password");
-            var (hash, salt) = HashPassword(dto.NewPassword);
-            entity.PasswordHash = hash;
-            entity.PasswordSalt = salt;
-            await _repo.ExecuteInTransactionAsync(async _ =>
-            {
-                await _repo.UpdateAsync(entity, ct);
-            }, ct);
-            return BitsBlog.Application.DTO.ResultDto.Success();
-        }
-    }
-}

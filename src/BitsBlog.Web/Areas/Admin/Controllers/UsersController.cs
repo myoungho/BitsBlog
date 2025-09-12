@@ -28,9 +28,8 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
                       (string.IsNullOrWhiteSpace(sort) ? string.Empty : $"&sort={Uri.EscapeDataString(sort)}");
             var res = await client.GetAsync(url);
             res.EnsureSuccessStatusCode();
-            var items = await res.Content.ReadFromJsonAsync<IReadOnlyList<UserVm>>() ?? Array.Empty<UserVm>();
-            var total = BitsBlog.Web.Services.PagingUtils.ParseTotalCount(res);
-            var vm = new BitsBlog.Web.Models.PagedResult<UserVm>(items, page, pageSize, total);
+            var vm = await res.Content.ReadFromJsonAsync<BitsBlog.Web.Models.PagedResult<UserVm>>()
+                     ?? new BitsBlog.Web.Models.PagedResult<UserVm>(Array.Empty<UserVm>(), page, pageSize, 0);
             ViewData["q"] = q; ViewData["sort"] = sort;
             return View(vm);
         }
@@ -40,7 +39,7 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
         public async Task<IActionResult> Promote(int id)
         {
             var client = Api();
-            var res = await client.PutAsJsonAsync($"users/{id}/role", new SetUserRoleDto { Role = "Admin" });
+            var res = await client.PutAsJsonAsync($"users/role", new SetUserRoleDto { Id = id, Role = "Admin" });
             if (!res.IsSuccessStatusCode) TempData["Error"] = "역할 변경 실패";
             return RedirectToAction(nameof(Index));
         }
@@ -50,7 +49,7 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
         public async Task<IActionResult> Demote(int id)
         {
             var client = Api();
-            var res = await client.PutAsJsonAsync($"users/{id}/role", new SetUserRoleDto { Role = "User" });
+            var res = await client.PutAsJsonAsync($"users/role", new SetUserRoleDto { Id = id, Role = "User" });
             if (!res.IsSuccessStatusCode) TempData["Error"] = "역할 변경 실패";
             return RedirectToAction(nameof(Index));
         }

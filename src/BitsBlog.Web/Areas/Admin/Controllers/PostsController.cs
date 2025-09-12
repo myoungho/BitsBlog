@@ -32,9 +32,8 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
                       (string.IsNullOrWhiteSpace(sort) ? string.Empty : $"&sort={Uri.EscapeDataString(sort)}");
             var res = await Api().GetAsync(url);
             res.EnsureSuccessStatusCode();
-            var items = await res.Content.ReadFromJsonAsync<IReadOnlyList<PostVm>>() ?? Array.Empty<PostVm>();
-            var total = BitsBlog.Web.Services.PagingUtils.ParseTotalCount(res);
-            var vm = new BitsBlog.Web.Models.PagedResult<PostVm>(items, page, pageSize, total);
+            var vm = await res.Content.ReadFromJsonAsync<BitsBlog.Web.Models.PagedResult<PostVm>>()
+                     ?? new BitsBlog.Web.Models.PagedResult<PostVm>(Array.Empty<PostVm>(), page, pageSize, 0);
             ViewData["q"] = q; ViewData["sort"] = sort;
             return View(vm);
         }

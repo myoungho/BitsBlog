@@ -32,13 +32,15 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
             int total = 0; IReadOnlyList<CommentVm> items = Array.Empty<CommentVm>();
             if (postId.HasValue)
             {
-                var url = $"posts/{postId.Value}/comments?page={page}&pageSize={pageSize}" +
+                var url = $"comments?page={page}&pageSize={pageSize}&postId={postId.Value}" +
                           (string.IsNullOrWhiteSpace(q) ? string.Empty : $"&q={Uri.EscapeDataString(q)}") +
                           (string.IsNullOrWhiteSpace(sort) ? string.Empty : $"&sort={Uri.EscapeDataString(sort)}");
                 var res = await Api().GetAsync(url);
                 res.EnsureSuccessStatusCode();
-                items = await res.Content.ReadFromJsonAsync<IReadOnlyList<CommentVm>>() ?? Array.Empty<CommentVm>();
-                total = BitsBlog.Web.Services.PagingUtils.ParseTotalCount(res);
+                var paged = await res.Content.ReadFromJsonAsync<BitsBlog.Web.Models.PagedResult<CommentVm>>()
+                            ?? new BitsBlog.Web.Models.PagedResult<CommentVm>(Array.Empty<CommentVm>(), page, pageSize, 0);
+                items = paged.Items;
+                total = paged.Total;
             }
             ViewData["PostId"] = postId;
             var vm = new BitsBlog.Web.Models.PagedResult<CommentVm>(items, page, pageSize, total);
@@ -50,7 +52,7 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int postId, int commentId)
         {
-            var res = await Api().DeleteAsync($"posts/{postId}/comments/{commentId}");
+            var res = await Api().DeleteAsync($"comments/{commentId}");
             if (!res.IsSuccessStatusCode) TempData["Error"] = "댓글 삭제 실패";
             return RedirectToAction(nameof(Index), new { postId });
         }

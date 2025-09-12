@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using BitsBlog.Application.DTO;
 using BitsBlog.Application.Interfaces;
+using BitsBlog.Application.DTO.Common;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
@@ -24,32 +25,28 @@ namespace BitsBlog.WebApi.Controllers
         /// <returns>게시글 목록</returns>
         [AllowAnonymous]
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<PostDto>), 200)]
-        public async Task<IEnumerable<PostDto>> Get([FromQuery] BitsBlog.Application.DTO.PostQueryDto query)
+        [ProducesResponseType(typeof(PagedResult<PostDto>), 200)]
+        public async Task<PagedResult<PostDto>> Get([FromQuery] BitsBlog.Application.DTO.PostQueryDto query)
         {
             if (query.Page < 1) query.Page = 1;
             if (query.PageSize < 1) query.PageSize = 10;
             if (query.PageSize > 100) query.PageSize = 100;
             var ct = HttpContext.RequestAborted;
-            var total = await _service.CountAsync(query, ct);
-            var items = await _service.GetPagedAsync(query, ct);
-            Response.Headers["X-Total-Count"] = total.ToString();
-            return items;
+            var paged = await _service.GetPagedAsync(query, ct);
+            return paged;
         }
 
         // Backward-compatible overload for tests invoking method directly
         // Not an action (no attributes)
-        public async Task<IEnumerable<PostDto>> Get(int page, int pageSize, string? q, string? sort)
+        public async Task<PagedResult<PostDto>> Get(int page, int pageSize, string? q, string? sort)
         {
             var query = new BitsBlog.Application.DTO.PostQueryDto { Page = page, PageSize = pageSize, Q = q, Sort = sort };
-            var total = await _service.CountAsync(query);
-            var items = await _service.GetPagedAsync(query);
-            Response.Headers["X-Total-Count"] = total.ToString();
-            return items;
+            var paged = await _service.GetPagedAsync(query);
+            return paged;
         }
 
         // Parameterless overload for tests
-        public Task<IEnumerable<PostDto>> Get()
+        public Task<PagedResult<PostDto>> Get()
         {
             return Get(new BitsBlog.Application.DTO.PostQueryDto());
         }
@@ -89,15 +86,15 @@ namespace BitsBlog.WebApi.Controllers
 
         /// <summary>게시글 수정</summary>
         [Authorize(Roles = "User,Admin")]
-        [HttpPut("{id}")]
+        [HttpPut]
         [Consumes("application/json")]
         [ProducesResponseType(typeof(PostDto), 200)]
         [ProducesResponseType(404)]
-        public async Task<ActionResult<PostDto>> Put(int id, [FromBody] BitsBlog.Application.DTO.PostUpdateDto body)
+        public async Task<ActionResult<PostDto>> Put([FromBody] BitsBlog.Application.DTO.PostUpdateDto body)
         {
-            if (id <= 0) return BadRequest();
+            if (body is null || body.Id <= 0) return BadRequest();
             // Authorize: only author or admin can update
-            var existing = await _service.GetByIdAsync(id, HttpContext.RequestAborted);
+            var existing = await _service.GetByIdAsync(body.Id, HttpContext.RequestAborted);
             if (existing is null) return NotFound();
             var isAdmin = User?.IsInRole("Admin") == true;
             var loginId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -106,8 +103,8 @@ namespace BitsBlog.WebApi.Controllers
                 if (!string.Equals(existing.AuthorLoginId, loginId, System.StringComparison.OrdinalIgnoreCase))
                     return Forbid();
             }
-            var safe = _sanitizer.Sanitize(body.Content);
-            var updated = await _service.UpdateAsync(new BitsBlog.Application.DTO.PostUpdateDto { Id = id, Title = body.Title, Content = safe }, HttpContext.RequestAborted);
+            var safe = _sanitizer.Sanitize(body.Content ?? string.Empty);
+            var updated = await _service.UpdateAsync(new BitsBlog.Application.DTO.PostUpdateDto { Id = body.Id, Title = body.Title, Content = safe }, HttpContext.RequestAborted);
             if (updated is null) return NotFound();
             return Ok(updated);
         }
@@ -115,7 +112,15 @@ namespace BitsBlog.WebApi.Controllers
         // Non-action wrapper for tests using old request type
         public Task<ActionResult<PostDto>> Put(int id, UpdatePostRequest req)
         {
-            return Put(id, new BitsBlog.Application.DTO.PostUpdateDto { Id = id, Title = req.Title, Content = req.Content });
+            return Put(new BitsBlog.Application.DTO.PostUpdateDto { Id = id, Title = req.Title, Content = req.Content });
+        }
+
+        // Non-action wrapper for tests using old action signature
+        public Task<ActionResult<PostDto>> Put(int id, BitsBlog.Application.DTO.PostUpdateDto body)
+        {
+            if (body is null) body = new BitsBlog.Application.DTO.PostUpdateDto { Id = id };
+            body.Id = id;
+            return Put(body);
         }
 
         /// <summary>게시글 삭제</summary>
