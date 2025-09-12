@@ -69,7 +69,7 @@ namespace BitsBlog.Application.Services
         public async Task<PostDto> CreateAsync(BitsBlog.Application.DTOs.PostCreateDto dto)
         {
             var post = await _repository.InsertAsync(new Post { Title = dto.Title, Content = dto.Content, AuthorLoginId = dto.AuthorLoginId, AuthorDisplayName = dto.AuthorDisplayName, CustomerId = dto.CustomerId });
-            await _repository.SaveDbContextChangesAsync();
+            await _repository.SaveChangesAsync();
             return new PostDto(post.Id, post.Title, post.Content, post.Created)
             {
                 AuthorLoginId = post.AuthorLoginId,
@@ -97,7 +97,7 @@ namespace BitsBlog.Application.Services
             post.Title = dto.Title;
             post.Content = dto.Content;
             await _repository.UpdateAsync(post);
-            await _repository.SaveDbContextChangesAsync();
+            await _repository.SaveChangesAsync();
             return new PostDto(post.Id, post.Title, post.Content, post.Created)
             {
                 AuthorLoginId = post.AuthorLoginId,

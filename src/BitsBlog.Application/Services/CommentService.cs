@@ -71,7 +71,7 @@ namespace BitsBlog.Application.Services
         {
             var comment = new Comment { PostId = dto.PostId, Content = dto.Content, AuthorLoginId = dto.AuthorLoginId, AuthorDisplayName = dto.AuthorDisplayName, CustomerId = dto.CustomerId };
             var created = await _repository.InsertAsync(comment);
-            await _repository.SaveDbContextChangesAsync();
+            await _repository.SaveChangesAsync();
             return new CommentDto(created.Id, created.PostId, created.Content, created.Created)
             {
                 AuthorLoginId = created.AuthorLoginId,
@@ -98,7 +98,7 @@ namespace BitsBlog.Application.Services
             if (c is null) return null;
             c.Content = dto.Content;
             await _repository.UpdateAsync(c);
-            await _repository.SaveDbContextChangesAsync();
+            await _repository.SaveChangesAsync();
             return new CommentDto(c.Id, c.PostId, c.Content, c.Created)
             {
                 AuthorLoginId = c.AuthorLoginId,

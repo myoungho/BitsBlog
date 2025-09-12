@@ -44,6 +44,8 @@ namespace BitsBlog.Infrastructure.Repositories
         public async Task<T?> GetByIdAsync(int id, CancellationToken ct = default)
             => await Entities.FindAsync(new object[] { id }, ct);
 
+        public Task<T?> GetByIdAsync(int id) => GetByIdAsync(id, default);
+
         public async Task<T?> GetByKeyAsync(CancellationToken ct = default, params object[] keys)
             => await Entities.FindAsync(keys, ct);
 
@@ -52,6 +54,8 @@ namespace BitsBlog.Infrastructure.Repositories
             await Entities.AddAsync(entity, ct);
             return entity;
         }
+
+        public Task<T> InsertAsync(T entity) => InsertAsync(entity, default);
 
         public async Task InsertRangeAsync(IEnumerable<T> entities, CancellationToken ct = default)
             => await Entities.AddRangeAsync(entities, ct);
@@ -73,8 +77,12 @@ namespace BitsBlog.Infrastructure.Repositories
             return Task.CompletedTask;
         }
 
+        public Task UpdateAsync(T entity) => UpdateAsync(entity, default);
+
         public async Task<int> SaveChangesAsync(CancellationToken ct = default)
             => await _context.SaveChangesAsync(ct);
+
+        public Task<int> SaveChangesAsync() => SaveChangesAsync(default);
 
         public async Task SaveDbContextChangesAsync() => await _context.SaveChangesAsync();
 
@@ -83,6 +91,8 @@ namespace BitsBlog.Infrastructure.Repositories
             Entities.Remove(entity);
             return Task.CompletedTask;
         }
+
+        public Task DeleteAsync(T entity) => DeleteAsync(entity, default);
 
         public Task DeleteRangeAsync(IEnumerable<T> entities, CancellationToken ct = default)
         {

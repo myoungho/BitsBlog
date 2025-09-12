@@ -21,6 +21,7 @@ namespace BitsBlog.Application.Interfaces
         Task LoadCollectionAsync(T entry, params Expression<Func<T, IEnumerable<object>>>[] props);
 
         Task<T?> GetByIdAsync(int id, CancellationToken ct = default);
+        Task<T?> GetByIdAsync(int id);
 
         Task<T?> GetByKeyAsync(CancellationToken ct = default, params object[] keys);
 
@@ -32,11 +33,14 @@ namespace BitsBlog.Application.Interfaces
         Task<bool> AnyAsync(Expression<Func<T, bool>>? predicate = null, CancellationToken ct = default);
 
         Task<T> InsertAsync(T entity, CancellationToken ct = default);
+        Task<T> InsertAsync(T entity);
         Task InsertRangeAsync(IEnumerable<T> entities, CancellationToken ct = default);
 
         Task UpdateAsync(T entity, CancellationToken ct = default);
+        Task UpdateAsync(T entity);
 
         Task DeleteAsync(T entity, CancellationToken ct = default);
+        Task DeleteAsync(T entity);
         Task DeleteRangeAsync(IEnumerable<T> entities, CancellationToken ct = default);
 
         IQueryable<T> AsTracking();
@@ -49,6 +53,7 @@ namespace BitsBlog.Application.Interfaces
         Task SaveDbContextChangesAsync();
 
         Task<int> SaveChangesAsync(CancellationToken ct = default);
+        Task<int> SaveChangesAsync();
 
         IQueryable<T> Execute(FormattableString query);
     }
