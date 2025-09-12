@@ -35,8 +35,10 @@ namespace BitsBlog.Application.Services
                 Role = "Admin",
                 Created = DateTime.UtcNow
             };
-            await _repo.InsertAsync(admin);
-            await _repo.SaveChangesAsync();
+            await _repo.ExecuteInTransactionAsync(async _ =>
+            {
+                await _repo.InsertAsync(admin);
+            });
             return BitsBlog.Application.DTOs.ResultDto.Success();
         }
 
@@ -58,8 +60,10 @@ namespace BitsBlog.Application.Services
                 Role = "User",
                 Created = DateTime.UtcNow
             };
-            await _repo.InsertAsync(customer);
-            await _repo.SaveChangesAsync();
+            await _repo.ExecuteInTransactionAsync(async _ =>
+            {
+                await _repo.InsertAsync(customer);
+            });
             var userDto = new BitsBlog.Application.DTOs.AuthUserDto { Id = customer.Id, LoginId = customer.LoginId, DisplayName = customer.DisplayName, Role = customer.Role };
             return BitsBlog.Application.DTOs.ResultDto<BitsBlog.Application.DTOs.AuthUserDto>.Success(userDto);
         }
@@ -144,8 +148,10 @@ namespace BitsBlog.Application.Services
             var entity = await _repo.GetByIdAsync(id);
             if (entity is null) return false;
             entity.Role = string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase) ? "Admin" : "User";
-            await _repo.UpdateAsync(entity);
-            await _repo.SaveChangesAsync();
+            await _repo.ExecuteInTransactionAsync(async _ =>
+            {
+                await _repo.UpdateAsync(entity);
+            });
             return true;
         }
 
@@ -153,8 +159,10 @@ namespace BitsBlog.Application.Services
         {
             var entity = await _repo.GetByIdAsync(id);
             if (entity is null) return false;
-            await _repo.DeleteAsync(entity);
-            await _repo.SaveChangesAsync();
+            await _repo.ExecuteInTransactionAsync(async _ =>
+            {
+                await _repo.DeleteAsync(entity);
+            });
             return true;
         }
 
@@ -188,8 +196,10 @@ namespace BitsBlog.Application.Services
             var entity = await _repo.AsTracking().FirstOrDefaultAsync(c => c.LoginId == id);
             if (entity is null) return BitsBlog.Application.DTOs.ResultDto.Fail("Not found");
             entity.DisplayName = dto.DisplayName.Trim();
-            await _repo.UpdateAsync(entity);
-            await _repo.SaveChangesAsync();
+            await _repo.ExecuteInTransactionAsync(async _ =>
+            {
+                await _repo.UpdateAsync(entity);
+            });
             return BitsBlog.Application.DTOs.ResultDto.Success();
         }
 
@@ -205,8 +215,10 @@ namespace BitsBlog.Application.Services
             var (hash, salt) = HashPassword(dto.NewPassword);
             entity.PasswordHash = hash;
             entity.PasswordSalt = salt;
-            await _repo.UpdateAsync(entity);
-            await _repo.SaveChangesAsync();
+            await _repo.ExecuteInTransactionAsync(async _ =>
+            {
+                await _repo.UpdateAsync(entity);
+            });
             return BitsBlog.Application.DTOs.ResultDto.Success();
         }
     }

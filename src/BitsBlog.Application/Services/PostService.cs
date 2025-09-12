@@ -66,8 +66,11 @@ namespace BitsBlog.Application.Services
 
         public async Task<PostDto> CreateAsync(BitsBlog.Application.DTOs.PostCreateDto dto)
         {
-            var post = await _repository.InsertAsync(new Post { Title = dto.Title, Content = dto.Content, AuthorLoginId = dto.AuthorLoginId, AuthorDisplayName = dto.AuthorDisplayName, CustomerId = dto.CustomerId });
-            await _repository.SaveChangesAsync();
+            Post post = null!;
+            await _repository.ExecuteInTransactionAsync(async _ =>
+            {
+                post = await _repository.InsertAsync(new Post { Title = dto.Title, Content = dto.Content, AuthorLoginId = dto.AuthorLoginId, AuthorDisplayName = dto.AuthorDisplayName, CustomerId = dto.CustomerId });
+            });
             return new PostDto(post.Id, post.Title, post.Content, post.Created)
             {
                 AuthorLoginId = post.AuthorLoginId,
@@ -94,8 +97,10 @@ namespace BitsBlog.Application.Services
             if (post is null) return null;
             post.Title = dto.Title;
             post.Content = dto.Content;
-            await _repository.UpdateAsync(post);
-            await _repository.SaveChangesAsync();
+            await _repository.ExecuteInTransactionAsync(async _ =>
+            {
+                await _repository.UpdateAsync(post);
+            });
             return new PostDto(post.Id, post.Title, post.Content, post.Created)
             {
                 AuthorLoginId = post.AuthorLoginId,
@@ -108,8 +113,10 @@ namespace BitsBlog.Application.Services
         {
             var post = await _repository.GetByIdAsync(id);
             if (post is null) return false;
-            await _repository.DeleteAsync(post);
-            await _repository.SaveChangesAsync();
+            await _repository.ExecuteInTransactionAsync(async _ =>
+            {
+                await _repository.DeleteAsync(post);
+            });
             return true;
         }
     }

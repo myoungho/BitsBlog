@@ -70,8 +70,11 @@ namespace BitsBlog.Application.Services
         public async Task<CommentDto> CreateAsync(BitsBlog.Application.DTOs.CommentCreateDto dto)
         {
             var comment = new Comment { PostId = dto.PostId, Content = dto.Content, AuthorLoginId = dto.AuthorLoginId, AuthorDisplayName = dto.AuthorDisplayName, CustomerId = dto.CustomerId };
-            var created = await _repository.InsertAsync(comment);
-            await _repository.SaveChangesAsync();
+            Comment created = null!;
+            await _repository.ExecuteInTransactionAsync(async _ =>
+            {
+                created = await _repository.InsertAsync(comment);
+            });
             return new CommentDto(created.Id, created.PostId, created.Content, created.Created)
             {
                 AuthorLoginId = created.AuthorLoginId,
@@ -97,8 +100,10 @@ namespace BitsBlog.Application.Services
             var c = await _repository.GetByIdAsync(dto.CommentId);
             if (c is null) return null;
             c.Content = dto.Content;
-            await _repository.UpdateAsync(c);
-            await _repository.SaveChangesAsync();
+            await _repository.ExecuteInTransactionAsync(async _ =>
+            {
+                await _repository.UpdateAsync(c);
+            });
             return new CommentDto(c.Id, c.PostId, c.Content, c.Created)
             {
                 AuthorLoginId = c.AuthorLoginId,
@@ -111,8 +116,10 @@ namespace BitsBlog.Application.Services
         {
             var c = await _repository.GetByIdAsync(id);
             if (c is null) return false;
-            await _repository.DeleteAsync(c);
-            await _repository.SaveChangesAsync();
+            await _repository.ExecuteInTransactionAsync(async _ =>
+            {
+                await _repository.DeleteAsync(c);
+            });
             return true;
         }
     }
