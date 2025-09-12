@@ -1,4 +1,4 @@
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -53,7 +53,7 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
         public async Task<IActionResult> Delete(int postId, int commentId)
         {
             var res = await Api().DeleteAsync($"comments/{commentId}");
-            if (!res.IsSuccessStatusCode) TempData["Error"] = "댓글 삭제 실패";
+            if (!res.IsSuccessStatusCode) TempData["Error"] = "Failed to delete comment.";
             return RedirectToAction(nameof(Index), new { postId });
         }
     }

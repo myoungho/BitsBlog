@@ -20,9 +20,9 @@ namespace BitsBlog.WebApi.Controllers
             _sanitizer = sanitizer;
         }
 
-        /// <summary>게시글 목록 조회</summary>
-        /// <param name="query">페이지/검색/정렬 파라미터</param>
-        /// <returns>게시글 목록</returns>
+        /// <summary>Retrieve post list</summary>
+        /// <param name="query">Paging / search / sorting parameters</param>
+        /// <returns>List of posts</returns>
         [AllowAnonymous]
         [HttpGet]
         [ProducesResponseType(typeof(PagedResult<PostDto>), 200)]
@@ -36,21 +36,6 @@ namespace BitsBlog.WebApi.Controllers
             return paged;
         }
 
-        // Backward-compatible overload for tests invoking method directly
-        // Not an action (no attributes)
-        public async Task<PagedResult<PostDto>> Get(int page, int pageSize, string? q, string? sort)
-        {
-            var query = new BitsBlog.Application.DTO.PostQueryDto { Page = page, PageSize = pageSize, Q = q, Sort = sort };
-            var paged = await _service.GetPagedAsync(query);
-            return paged;
-        }
-
-        // Parameterless overload for tests
-        public Task<PagedResult<PostDto>> Get()
-        {
-            return Get(new BitsBlog.Application.DTO.PostQueryDto());
-        }
-
         [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<ActionResult<PostDto>> GetById(int id)
@@ -60,7 +45,7 @@ namespace BitsBlog.WebApi.Controllers
             return Ok(post);
         }
 
-        /// <summary>게시글 생성</summary>
+        /// <summary>Create post</summary>
         [Authorize(Roles = "User,Admin")]
         [HttpPost]
         [Consumes("application/json")]
@@ -78,13 +63,7 @@ namespace BitsBlog.WebApi.Controllers
             return CreatedAtAction(nameof(GetById), new { id = post.Id }, post);
         }
 
-        // Non-action wrapper for tests using old request type
-        public Task<ActionResult<PostDto>> Post(CreatePostRequest req)
-        {
-            return Post(new BitsBlog.Application.DTO.PostCreateDto { Title = req.Title, Content = req.Content });
-        }
-
-        /// <summary>게시글 수정</summary>
+        /// <summary>Update post</summary>
         [Authorize(Roles = "User,Admin")]
         [HttpPut]
         [Consumes("application/json")]
@@ -109,21 +88,7 @@ namespace BitsBlog.WebApi.Controllers
             return Ok(updated);
         }
 
-        // Non-action wrapper for tests using old request type
-        public Task<ActionResult<PostDto>> Put(int id, UpdatePostRequest req)
-        {
-            return Put(new BitsBlog.Application.DTO.PostUpdateDto { Id = id, Title = req.Title, Content = req.Content });
-        }
-
-        // Non-action wrapper for tests using old action signature
-        public Task<ActionResult<PostDto>> Put(int id, BitsBlog.Application.DTO.PostUpdateDto body)
-        {
-            if (body is null) body = new BitsBlog.Application.DTO.PostUpdateDto { Id = id };
-            body.Id = id;
-            return Put(body);
-        }
-
-        /// <summary>게시글 삭제</summary>
+        /// <summary>Delete post</summary>
         [Authorize(Roles = "User,Admin")]
         [HttpDelete("{id}")]
         [ProducesResponseType(204)]

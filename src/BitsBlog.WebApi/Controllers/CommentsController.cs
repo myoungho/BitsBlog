@@ -21,7 +21,7 @@ namespace BitsBlog.WebApi.Controllers
             _sanitizer = sanitizer;
         }
 
-        /// <summary>코멘트 목록 조회</summary>
+        /// <summary>Retrieve paged list of comments</summary>
         [AllowAnonymous]
         [HttpGet]
         [ProducesResponseType(typeof(PagedResult<CommentDto>), 200)]
@@ -36,7 +36,7 @@ namespace BitsBlog.WebApi.Controllers
             return Ok(paged);
         }
 
-        /// <summary>코멘트 작성</summary>
+        /// <summary>Create a comment</summary>
         [Authorize(Roles = "User,Admin")]
         [HttpPost]
         [Consumes("application/json")]
@@ -53,7 +53,7 @@ namespace BitsBlog.WebApi.Controllers
             return Created($"/api/comments/{created.Id}", created);
         }
 
-        /// <summary>코멘트 수정</summary>
+        /// <summary>Update a comment</summary>
         [Authorize(Roles = "User,Admin")]
         [HttpPut]
         [Consumes("application/json")]
@@ -72,7 +72,7 @@ namespace BitsBlog.WebApi.Controllers
             return Ok(updated);
         }
 
-        /// <summary>코멘트 삭제</summary>
+        /// <summary>Delete a comment</summary>
         [Authorize(Roles = "User,Admin")]
         [HttpDelete("{commentId}")]
         [ProducesResponseType(204)]

@@ -17,7 +17,7 @@ namespace BitsBlog.WebApi.Controllers
         public async Task<ActionResult<object>> Upload([FromForm] IFormFile file)
         {
             if (file == null || file.Length == 0)
-                return BadRequest("파일이 없습니다.");
+                return BadRequest("No file uploaded.");
 
             var uploadsDir = Path.Combine(_env.WebRootPath ?? Path.Combine(AppContext.BaseDirectory, "wwwroot"), "uploads");
             if (!Directory.Exists(uploadsDir)) Directory.CreateDirectory(uploadsDir);

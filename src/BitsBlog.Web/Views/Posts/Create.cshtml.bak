@@ -1,5 +1,5 @@
-@model BitsBlog.Web.Models.CreatePostViewModel
-<h1>글쓰기</h1>
+﻿@model BitsBlog.Web.Models.CreatePostViewModel
+<h1>Create Post</h1>
 <form asp-action="Create" method="post">
     <div>
         <label asp-for="Title"></label>
@@ -9,6 +9,7 @@
         <label asp-for="Content"></label>
         <textarea asp-for="Content"></textarea>
     </div>
-    <button type="submit">저장</button>
+    <button type="submit">Save</button>
 </form>
+
 

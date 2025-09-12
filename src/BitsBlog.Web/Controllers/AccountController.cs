@@ -1,4 +1,4 @@
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
@@ -59,7 +59,7 @@ namespace BitsBlog.Web.Controllers
                 return View();
             }
             SetJwtCookie(auth);
-            // Admin은 관리자 홈으로 리다이렉트
+            // If Admin, redirect to Admin dashboard
             if (string.Equals(auth.Role, "Admin", System.StringComparison.OrdinalIgnoreCase))
                 return Redirect("/Admin");
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
@@ -136,7 +136,7 @@ namespace BitsBlog.Web.Controllers
             var res = await client.PutAsJsonAsync("auth/profile", new UpdateProfileDto { DisplayName = displayName });
             if (!res.IsSuccessStatusCode)
             {
-                TempData["Error"] = "프로필 저장 실패";
+                TempData["Error"] = "Failed to update profile.";
                 return RedirectToAction(nameof(Profile));
             }
             var auth = await res.Content.ReadFromJsonAsync<AuthResponse>();
@@ -144,7 +144,7 @@ namespace BitsBlog.Web.Controllers
             {
                 SetJwtCookie(auth);
             }
-            TempData["Success"] = "프로필이 저장되었습니다.";
+            TempData["Success"] = "Profile updated successfully.";
             return RedirectToAction(nameof(Profile));
         }
 
@@ -157,15 +157,15 @@ namespace BitsBlog.Web.Controllers
             var res = await client.PutAsJsonAsync("auth/password", new ChangePasswordDto { CurrentPassword = currentPassword, NewPassword = newPassword });
             if (res.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
-                TempData["Error"] = "현재 비밀번호가 올바르지 않습니다.";
+                TempData["Error"] = "Current password is incorrect.";
             }
             else if (!res.IsSuccessStatusCode)
             {
-                TempData["Error"] = "비밀번호 변경 실패";
+                TempData["Error"] = "Failed to change password.";
             }
             else
             {
-                TempData["Success"] = "비밀번호가 변경되었습니다.";
+                TempData["Success"] = "Password changed successfully.";
             }
             return RedirectToAction(nameof(Profile));
         }

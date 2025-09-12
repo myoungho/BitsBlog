@@ -1,4 +1,4 @@
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using BitsBlog.Application.DTO;
@@ -40,7 +40,7 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
         {
             var client = Api();
             var res = await client.PutAsJsonAsync($"users/role", new SetUserRoleDto { Id = id, Role = "Admin" });
-            if (!res.IsSuccessStatusCode) TempData["Error"] = "역할 변경 실패";
+            if (!res.IsSuccessStatusCode) TempData["Error"] = "Failed to promote user.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -50,7 +50,7 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
         {
             var client = Api();
             var res = await client.PutAsJsonAsync($"users/role", new SetUserRoleDto { Id = id, Role = "User" });
-            if (!res.IsSuccessStatusCode) TempData["Error"] = "역할 변경 실패";
+            if (!res.IsSuccessStatusCode) TempData["Error"] = "Failed to demote user.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -61,7 +61,7 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
             var client = Api();
             var m = string.IsNullOrWhiteSpace(mode) ? "anonymize" : mode;
             var res = await client.DeleteAsync($"users/{id}?mode={Uri.EscapeDataString(m!)}");
-            if (!res.IsSuccessStatusCode) TempData["Error"] = "삭제 실패";
+            if (!res.IsSuccessStatusCode) TempData["Error"] = "Failed to delete user.";
             return RedirectToAction(nameof(Index));
         }
     }

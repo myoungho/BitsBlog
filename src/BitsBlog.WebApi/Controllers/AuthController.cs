@@ -22,7 +22,7 @@ namespace BitsBlog.WebApi.Controllers
             _config = config;
         }
 
-        /// <summary>회원가입</summary>
+        /// <summary>Register</summary>
         [HttpPost("register")]
         [Consumes("application/json")]
         [ProducesResponseType(typeof(AuthResponse), 200)]
@@ -43,7 +43,7 @@ namespace BitsBlog.WebApi.Controllers
             return Ok(new AuthResponse(token.Token, token.Expires, reg.Data.Role, reg.Data.DisplayName));
         }
 
-        /// <summary>로그인</summary>
+        /// <summary>Login</summary>
         [HttpPost("login")]
         [Consumes("application/json")]
         [ProducesResponseType(typeof(AuthResponse), 200)]
@@ -56,7 +56,7 @@ namespace BitsBlog.WebApi.Controllers
             return Ok(new AuthResponse(token.Token, token.Expires, result.Data.Role, result.Data.DisplayName));
         }
 
-        /// <summary>내 프로필 조회</summary>
+        /// <summary>Get my profile</summary>
         [Authorize]
         [HttpGet("me")]
         [ProducesResponseType(typeof(object), 200)]
@@ -95,7 +95,7 @@ namespace BitsBlog.WebApi.Controllers
 
         public record AuthResponse(string AccessToken, DateTime Expires, string Role, string DisplayName);
 
-        /// <summary>프로필(DisplayName) 수정</summary>
+        /// <summary>Update profile (DisplayName)</summary>
         [Authorize]
         [HttpPut("profile")]
         [Consumes("application/json")]
@@ -118,7 +118,7 @@ namespace BitsBlog.WebApi.Controllers
             return Ok(new AuthResponse(token.Token, token.Expires, me.Role, me.DisplayName));
         }
 
-        /// <summary>비밀번호 변경</summary>
+        /// <summary>Change password</summary>
         [Authorize]
         [HttpPut("password")]
         [Consumes("application/json")]

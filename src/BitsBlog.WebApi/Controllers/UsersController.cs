@@ -20,7 +20,7 @@ namespace BitsBlog.WebApi.Controllers
             _admin = admin;
         }
 
-        /// <summary>사용자 목록(관리자)</summary>
+        /// <summary>User list (Admin)</summary>
         [HttpGet]
         [ProducesResponseType(typeof(PagedResult<UserDto>), 200)]
         public async Task<IActionResult> Get([FromQuery] UserQueryDto query)
@@ -40,7 +40,7 @@ namespace BitsBlog.WebApi.Controllers
             return user is null ? NotFound() : Ok(user);
         }
 
-        /// <summary>사용자 역할 변경</summary>
+        /// <summary>Change user role</summary>
         [HttpPut("role")]
         [Consumes("application/json")]
         [ProducesResponseType(204)]
@@ -53,7 +53,7 @@ namespace BitsBlog.WebApi.Controllers
             return NoContent();
         }
 
-        /// <summary>사용자 삭제</summary>
+        /// <summary>Delete user</summary>
         [HttpDelete("{id:int}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]

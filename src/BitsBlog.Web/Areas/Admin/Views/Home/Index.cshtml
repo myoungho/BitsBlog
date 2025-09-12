@@ -1,16 +1,17 @@
-@{
+﻿@{
     ViewData["Title"] = "Admin Dashboard";
 }
 @await Html.PartialAsync("~/Areas/Admin/Views/Shared/_AdminNav.cshtml")
 
 <div class="card shadow-sm">
   <div class="card-body">
-    <h5 class="card-title mb-3">관리자 대시보드</h5>
-    <p class="text-body-secondary mb-4">관리자 전용 영역입니다. 좌측 상단 탭으로 이동하세요.</p>
+    <h5 class="card-title mb-3">Admin Tools</h5>
+    <p class="text-body-secondary mb-4">Quick links to manage users, posts, and comments.</p>
     <div class="d-flex flex-wrap gap-2">
-      <a class="btn btn-primary" href="/Admin/Users"><i class="bi bi-people me-1"></i>회원관리</a>
-      <a class="btn btn-outline-primary" href="/Admin/Posts"><i class="bi bi-journal-text me-1"></i>게시글관리</a>
-      <a class="btn btn-outline-primary" href="/Admin/Comments"><i class="bi bi-chat-left-text me-1"></i>코멘트관리</a>
+      <a class="btn btn-primary" href="/Admin/Users"><i class="bi bi-people me-1"></i>Manage Users</a>
+      <a class="btn btn-outline-primary" href="/Admin/Posts"><i class="bi bi-journal-text me-1"></i>Manage Posts</a>
+      <a class="btn btn-outline-primary" href="/Admin/Comments"><i class="bi bi-chat-left-text me-1"></i>Manage Comments</a>
     </div>
   </div>
 </div>
+

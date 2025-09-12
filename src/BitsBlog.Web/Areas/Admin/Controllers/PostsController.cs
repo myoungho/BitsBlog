@@ -1,4 +1,4 @@
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -43,7 +43,7 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var res = await Api().DeleteAsync($"posts/{id}");
-            if (!res.IsSuccessStatusCode) TempData["Error"] = "게시글 삭제 실패";
+            if (!res.IsSuccessStatusCode) TempData["Error"] = "Failed to delete post.";
             return RedirectToAction(nameof(Index));
         }
     }

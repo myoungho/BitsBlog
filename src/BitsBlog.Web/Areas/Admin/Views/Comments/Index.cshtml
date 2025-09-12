@@ -1,6 +1,6 @@
-@model BitsBlog.Web.Models.PagedResult<BitsBlog.Web.Areas.Admin.Controllers.CommentsController.CommentVm>
+﻿@model BitsBlog.Web.Models.PagedResult<BitsBlog.Web.Areas.Admin.Controllers.CommentsController.CommentVm>
 @{
-    ViewData["Title"] = "코멘트관리";
+    ViewData["Title"] = "Comments";
     var postId = ViewData["PostId"] as int?;
     var q = ViewData["q"] as string; var sort = ViewData["sort"] as string;
 }
@@ -20,21 +20,21 @@
         <input class="form-control" type="number" id="postId" name="postId" value="@postId" min="1" />
       </div>
       <div class="col-md-4">
-        <input class="form-control" type="text" id="q" name="q" value="@q" placeholder="내용/작성자" />
+        <input class="form-control" type="text" id="q" name="q" value="@q" placeholder="Content/Author" />
       </div>
       <div class="col-md-3">
         <select class="form-select" id="sort" name="sort">
-          @if (string.IsNullOrEmpty(sort)) {<option value="" selected="selected">최신순</option>} else {<option value="">최신순</option>}
-          @if (string.Equals(sort,"created_asc")) {<option value="created_asc" selected="selected">오래된순</option>} else {<option value="created_asc">오래된순</option>}
+          @if (string.IsNullOrEmpty(sort)) {<option value="" selected="selected">Default</option>} else {<option value="">Default</option>}
+          @if (string.Equals(sort,"created_asc")) {<option value="created_asc" selected="selected">Oldest first</option>} else {<option value="created_asc">Oldest first</option>}
         </select>
       </div>
       <div class="col-auto">
-        <button class="btn btn-primary" type="submit"><i class="bi bi-search me-1"></i>조회</button>
+        <button class="btn btn-primary" type="submit">Search</button>
       </div>
       <div class="col-auto">
-        <a class="btn btn-outline-secondary" href="/Admin/Comments">초기화</a>
+        <a class="btn btn-outline-secondary" href="/Admin/Comments">Reset</a>
       </div>
-      <div class="col-auto ms-auto text-body-secondary">@Model.Total 개</div>
+      <div class="col-auto ms-auto text-body-secondary">Total @Model.Total</div>
     </form>
   </div>
   </div>
@@ -43,13 +43,13 @@
   <div class="card-body">
     <div class="table-responsive">
       <table class="table table-striped table-hover align-middle mb-0">
-        <thead>
+                <thead>
           <tr>
             <th>ID</th>
             <th>PostId</th>
-            <th>작성자</th>
-            <th>내용</th>
-            <th>작성일</th>
+            <th>Author</th>
+            <th>Content</th>
+            <th>Created</th>
             <th style="width:120px">Action</th>
           </tr>
         </thead>
@@ -64,11 +64,11 @@
             </td>
             <td>@c.Created.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
             <td>
-              <form method="post" asp-action="Delete" onsubmit="return confirm('삭제하시겠습니까?')">
+              <form method="post" asp-action="Delete" onsubmit="return confirm('ì‚­ì œí•˜ì‹œê² ìŠµë‹ˆê¹Œ?')">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="postId" value="@c.PostId" />
                 <input type="hidden" name="commentId" value="@c.Id" />
-                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>삭제</button>
+                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>Delete</button>
               </form>
             </td>
           </tr>
@@ -82,3 +82,6 @@
     }
   </div>
 </div>
+
+
+

@@ -1,4 +1,4 @@
-@model BitsBlog.Web.Models.PagedResult<PostDto>
+﻿@model BitsBlog.Web.Models.PagedResult<PostDto>
 @{
     ViewData["Title"] = "Posts";
     var totalPages = (int)Math.Ceiling((double)Model.Total / Math.Max(1, Model.PageSize));
@@ -13,33 +13,33 @@
 
 <form method="get" class="row g-2 align-items-end mb-3">
   <div class="col-md-6">
-    <label class="form-label" for="q">검색</label>
-    <input class="form-control" type="text" id="q" name="q" value="@q" placeholder="제목/내용" />
+    <label class="form-label" for="q">Search</label>
+    <input class="form-control" type="text" id="q" name="q" value="@q" placeholder="Title/Content" />
   </div>
   <div class="col-md-3">
-    <label class="form-label" for="sort">정렬</label>
+    <label class="form-label" for="sort">Sort</label>
     <select class="form-select" id="sort" name="sort">
       @if (string.IsNullOrEmpty(sort))
       {
-        <option value="" selected="selected">최신순</option>
+        <option value="" selected="selected">Default</option>
       }
       else
       {
-        <option value="">최신순</option>
+        <option value="">Default</option>
       }
       @if (string.Equals(sort, "created_asc"))
       {
-        <option value="created_asc" selected="selected">오래된순</option>
+        <option value="created_asc" selected="selected">Oldest first</option>
       }
       else
       {
-        <option value="created_asc">오래된순</option>
+        <option value="created_asc">Oldest first</option>
       }
     </select>
   </div>
   <div class="col-md-3">
     <label class="form-label d-block">&nbsp;</label>
-    <button type="submit" class="btn btn-outline-primary">검색</button>
+    <button type="submit" class="btn btn-outline-primary">Search</button>
   </div>
 </form>
 
@@ -66,3 +66,5 @@ else
     </ul>
     @await Html.PartialAsync("~/Views/Shared/_Pagination.cshtml", new BitsBlog.Web.Models.PaginationModel { Action = "Index", Controller = "Posts", Page = Model.Page, PageSize = Model.PageSize, Total = Model.Total, ExtraRouteValues = new System.Collections.Generic.Dictionary<string, object?> { ["q"] = q, ["sort"] = sort } })
 }
+
+

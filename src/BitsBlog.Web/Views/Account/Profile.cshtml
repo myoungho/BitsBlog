@@ -1,4 +1,4 @@
-@model BitsBlog.Web.Controllers.AccountController.ProfileViewModel
+﻿@model BitsBlog.Web.Controllers.AccountController.ProfileViewModel
 @{
     ViewData["Title"] = "Profile";
 }
@@ -30,8 +30,8 @@
             <input class="form-control" type="text" id="displayName" name="displayName" value="@Model.DisplayName" maxlength="100" required />
           </div>
           <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary">저장</button>
-            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#changePasswordModal">비밀번호 변경</button>
+            <button type="submit" class="btn btn-primary">Update</button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#changePasswordModal">Change Password</button>
             <a href="/" class="btn btn-outline-secondary">Home</a>
             <form method="post" action="/Account/Logout" class="d-inline">
               @Html.AntiForgeryToken()
@@ -44,24 +44,24 @@
           <div class="modal-dialog">
             <div class="modal-content">
               <div class="modal-header">
-                <h5 class="modal-title" id="changePasswordLabel">비밀번호 변경</h5>
+                <h5 class="modal-title" id="changePasswordLabel">Change Password</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
               <form method="post" asp-action="ChangePassword">
                 @Html.AntiForgeryToken()
                 <div class="modal-body">
                   <div class="mb-3">
-                    <label class="form-label" for="currentPassword">현재 비밀번호</label>
+                    <label class="form-label" for="currentPassword">Current password</label>
                     <input class="form-control" id="currentPassword" name="currentPassword" type="password" required />
                   </div>
                   <div class="mb-3">
-                    <label class="form-label" for="newPassword">새 비밀번호</label>
+                    <label class="form-label" for="newPassword">New password</label>
                     <input class="form-control" id="newPassword" name="newPassword" type="password" minlength="6" required />
                   </div>
                 </div>
                 <div class="modal-footer">
-                  <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">취소</button>
-                  <button type="submit" class="btn btn-primary">변경</button>
+                  <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                  <button type="submit" class="btn btn-primary">Update</button>
                 </div>
               </form>
             </div>
@@ -72,3 +72,6 @@
     </div>
   </div>
 </div>
+
+
+
