@@ -27,25 +27,25 @@ namespace BitsBlog.WebApi.Controllers
             if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
                 return BadRequest("Email and password are required");
 
-            var (ok, error, customer) = await _customers.RegisterAsync(request.Email, request.Password, request.DisplayName);
-            if (!ok || customer is null)
+            var reg = await _customers.RegisterAsync(request.Email, request.Password, request.DisplayName);
+            if (!reg.Ok || reg.Data is null)
             {
-                if (string.Equals(error, "Email already registered", StringComparison.OrdinalIgnoreCase))
-                    return Conflict(error);
-                return BadRequest(error ?? "Registration failed");
+                if (string.Equals(reg.Error, "Email already registered", StringComparison.OrdinalIgnoreCase))
+                    return Conflict(reg.Error);
+                return BadRequest(reg.Error ?? "Registration failed");
             }
 
-            var token = GenerateJwt(customer);
-            return Ok(new AuthResponse(token.Token, token.Expires, customer.Role, customer.DisplayName));
+            var token = GenerateJwt(new Customer { LoginId = reg.Data.LoginId, DisplayName = reg.Data.DisplayName, Role = reg.Data.Role });
+            return Ok(new AuthResponse(token.Token, token.Expires, reg.Data.Role, reg.Data.DisplayName));
         }
 
         [HttpPost("login")]
         public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request)
         {
             var result = await _customers.LoginAsync(request.Email, request.Password);
-            if (!result.ok || result.customer is null) return Unauthorized();
-            var token = GenerateJwt(result.customer);
-            return Ok(new AuthResponse(token.Token, token.Expires, result.customer.Role, result.customer.DisplayName));
+            if (!result.Ok || result.Data is null) return Unauthorized();
+            var token = GenerateJwt(new Customer { LoginId = result.Data.LoginId, DisplayName = result.Data.DisplayName, Role = result.Data.Role });
+            return Ok(new AuthResponse(token.Token, token.Expires, result.Data.Role, result.Data.DisplayName));
         }
 
         [Authorize]
@@ -55,7 +55,7 @@ namespace BitsBlog.WebApi.Controllers
             var email = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
             var profile = await _customers.GetProfileAsync(email);
             if (profile is null) return NotFound();
-            return Ok(new { profile.Value.LoginId, profile.Value.DisplayName, profile.Value.Role, profile.Value.Created });
+            return Ok(new { profile.LoginId, profile.DisplayName, profile.Role, profile.Created });
         }
 
         private (string Token, DateTime Expires) GenerateJwt(Customer customer)
@@ -93,17 +93,17 @@ namespace BitsBlog.WebApi.Controllers
         public async Task<ActionResult<AuthResponse>> UpdateProfile([FromBody] UpdateProfileRequest request)
         {
             var loginId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-            var (ok, error) = await _customers.UpdateDisplayNameAsync(loginId, request.DisplayName ?? string.Empty);
-            if (!ok) return BadRequest(error ?? "Update failed");
+            var up = await _customers.UpdateDisplayNameAsync(loginId, request.DisplayName ?? string.Empty);
+            if (!up.Ok) return BadRequest(up.Error ?? "Update failed");
             var me = await _customers.GetProfileAsync(loginId);
             if (me is null) return Unauthorized();
             var token = GenerateJwt(new Customer
             {
-                LoginId = me.Value.LoginId,
-                DisplayName = me.Value.DisplayName,
-                Role = me.Value.Role
+                LoginId = me.LoginId,
+                DisplayName = me.DisplayName,
+                Role = me.Role
             });
-            return Ok(new AuthResponse(token.Token, token.Expires, me.Value.Role, me.Value.DisplayName));
+            return Ok(new AuthResponse(token.Token, token.Expires, me.Role, me.DisplayName));
         }
 
         public record ChangePasswordRequest(string CurrentPassword, string NewPassword);
@@ -113,12 +113,12 @@ namespace BitsBlog.WebApi.Controllers
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
         {
             var loginId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-            var (ok, error) = await _customers.ChangePasswordAsync(loginId, request.CurrentPassword ?? string.Empty, request.NewPassword ?? string.Empty);
-            if (!ok)
+            var cp = await _customers.ChangePasswordAsync(loginId, request.CurrentPassword ?? string.Empty, request.NewPassword ?? string.Empty);
+            if (!cp.Ok)
             {
-                if (string.Equals(error, "Invalid current password", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(cp.Error, "Invalid current password", StringComparison.OrdinalIgnoreCase))
                     return Unauthorized();
-                return BadRequest(error ?? "Change password failed");
+                return BadRequest(cp.Error ?? "Change password failed");
             }
             return NoContent();
         }
