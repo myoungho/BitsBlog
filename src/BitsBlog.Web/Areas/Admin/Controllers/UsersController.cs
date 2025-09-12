@@ -56,10 +56,11 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int id, string? mode)
         {
             var client = Api();
-            var res = await client.DeleteAsync($"users/{id}");
+            var m = string.IsNullOrWhiteSpace(mode) ? "anonymize" : mode;
+            var res = await client.DeleteAsync($"users/{id}?mode={Uri.EscapeDataString(m!)}");
             if (!res.IsSuccessStatusCode) TempData["Error"] = "삭제 실패";
             return RedirectToAction(nameof(Index));
         }

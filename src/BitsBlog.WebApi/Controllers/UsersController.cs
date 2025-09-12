@@ -11,9 +11,11 @@ namespace BitsBlog.WebApi.Controllers
     public class UsersController : ControllerBase
     {
         private readonly ICustomerService _customers;
-        public UsersController(ICustomerService customers)
+        private readonly IAdminMaintenanceService _admin;
+        public UsersController(ICustomerService customers, IAdminMaintenanceService admin)
         {
             _customers = customers;
+            _admin = admin;
         }
 
         /// <summary>사용자 목록(관리자)</summary>
@@ -54,9 +56,9 @@ namespace BitsBlog.WebApi.Controllers
         [HttpDelete("{id:int}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int id, [FromQuery] string? mode = null)
         {
-            var ok = await _customers.DeleteUserAsync(id);
+            var ok = await _admin.DeleteUserAsync(id, string.IsNullOrWhiteSpace(mode) ? "anonymize" : mode!);
             if (!ok) return NotFound();
             return NoContent();
         }
