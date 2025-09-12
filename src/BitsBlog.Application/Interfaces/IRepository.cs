@@ -49,9 +49,6 @@ namespace BitsBlog.Application.Interfaces
 
         IQueryable<T> AsQueryable(bool tracking = false);
 
-        [System.Obsolete("Use SaveChangesAsync() instead")] 
-        Task SaveDbContextChangesAsync();
-
         Task<int> SaveChangesAsync(CancellationToken ct = default);
         Task<int> SaveChangesAsync();
 

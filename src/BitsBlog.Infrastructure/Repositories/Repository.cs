@@ -85,8 +85,6 @@ namespace BitsBlog.Infrastructure.Repositories
 
         public Task<int> SaveChangesAsync() => SaveChangesAsync(default);
 
-        public async Task SaveDbContextChangesAsync() => await _context.SaveChangesAsync();
-
         public Task DeleteAsync(T entity, CancellationToken ct = default)
         {
             Entities.Remove(entity);
