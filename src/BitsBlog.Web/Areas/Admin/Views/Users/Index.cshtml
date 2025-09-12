@@ -5,12 +5,35 @@
 @await Html.PartialAsync("~/Areas/Admin/Views/Shared/_AdminNav.cshtml")
 @{
   var totalPages = (int)Math.Ceiling((double)Model.Total / Math.Max(1, Model.PageSize));
+  var q = ViewData["q"] as string;
+  var sort = ViewData["sort"] as string;
 }
 
 @if (TempData["Error"] is string err) {<div class="alert alert-danger">@err</div>}
 
 <div class="card shadow-sm">
   <div class="card-body">
+    <form method="get" class="row g-2 align-items-end mb-3">
+      <div class="col-md-6">
+        <label class="form-label" for="q">검색</label>
+        <input class="form-control" type="text" id="q" name="q" value="@q" placeholder="LoginId/DisplayName" />
+      </div>
+      <div class="col-md-3">
+        <label class="form-label" for="sort">정렬</label>
+        <select class="form-select" id="sort" name="sort">
+          @if (string.IsNullOrEmpty(sort)) {<option value="" selected="selected">가입 최신순</option>} else {<option value="">가입 최신순</option>}
+          @if (string.Equals(sort,"created_asc")) {<option value="created_asc" selected="selected">가입 오래된순</option>} else {<option value="created_asc">가입 오래된순</option>}
+          @if (string.Equals(sort,"login_asc")) {<option value="login_asc" selected="selected">LoginId 오름차순</option>} else {<option value="login_asc">LoginId 오름차순</option>}
+          @if (string.Equals(sort,"login_desc")) {<option value="login_desc" selected="selected">LoginId 내림차순</option>} else {<option value="login_desc">LoginId 내림차순</option>}
+          @if (string.Equals(sort,"name_asc")) {<option value="name_asc" selected="selected">이름 오름차순</option>} else {<option value="name_asc">이름 오름차순</option>}
+          @if (string.Equals(sort,"name_desc")) {<option value="name_desc" selected="selected">이름 내림차순</option>} else {<option value="name_desc">이름 내림차순</option>}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label d-block">&nbsp;</label>
+        <button type="submit" class="btn btn-outline-primary">검색</button>
+      </div>
+    </form>
     <div class="d-flex align-items-center justify-content-between mb-3">
       <h5 class="card-title mb-0">회원관리</h5>
       <span class="text-body-secondary">총 @Model.Total 명</span>
@@ -68,6 +91,6 @@
         </tbody>
       </table>
     </div>
-    @await Html.PartialAsync("~/Views/Shared/_Pagination.cshtml", new BitsBlog.Web.Models.PaginationModel { Area = "Admin", Controller = "Users", Action = "Index", Page = Model.Page, PageSize = Model.PageSize, Total = Model.Total })
+    @await Html.PartialAsync("~/Views/Shared/_Pagination.cshtml", new BitsBlog.Web.Models.PaginationModel { Area = "Admin", Controller = "Users", Action = "Index", Page = Model.Page, PageSize = Model.PageSize, Total = Model.Total, ExtraRouteValues = new System.Collections.Generic.Dictionary<string, object?> { ["q"] = q, ["sort"] = sort } })
   </div>
 </div>

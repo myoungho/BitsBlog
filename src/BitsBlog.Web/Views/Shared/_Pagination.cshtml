@@ -7,8 +7,38 @@
     }
     var baseRoutes = new Microsoft.AspNetCore.Routing.RouteValueDictionary(Model.ExtraRouteValues ?? new System.Collections.Generic.Dictionary<string, object?>());
 }
-<nav class="mt-3" aria-label="Pagination">
-  <ul class="pagination">
+<nav class="mt-3 d-flex align-items-center justify-content-between" aria-label="Pagination">
+  <div>
+  @if (Model.ShowPageSize)
+  {
+    <form method="get" action="@Url.Action(Model.Action, Model.Controller)" class="d-flex align-items-center gap-2">
+      @foreach (var kv in baseRoutes)
+      {
+        <input type="hidden" name="@kv.Key" value="@kv.Value" />
+      }
+      @if (!string.IsNullOrWhiteSpace(Model.Area)) { <input type="hidden" name="area" value="@Model.Area" /> }
+      <input type="hidden" name="page" value="1" />
+      <label class="form-label m-0 me-2" for="pageSizeSelect">Page size</label>
+      <select id="pageSizeSelect" name="pageSize" class="form-select form-select-sm" onchange="this.form.submit()">
+        @foreach (var opt in Model.PageSizeOptions)
+        {
+            if (opt == Model.PageSize)
+            {
+                <option value="@opt" selected="selected">@opt</option>
+            }
+            else
+            {
+                <option value="@opt">@opt</option>
+            }
+        }
+      </select>
+    </form>
+  }
+  </div>
+  <ul class="pagination mb-0">
+    <li class="page-item @(Model.Page <= 1 ? "disabled" : string.Empty)">
+      <a class="page-link" href="@Url.Action(Model.Action, Model.Controller, Merge(baseRoutes, 1, Model.PageSize, Model.Area))" aria-label="First"><span aria-hidden="true">&laquo;&laquo;</span></a>
+    </li>
     <li class="page-item @(Model.Page <= 1 ? "disabled" : string.Empty)">
       <a class="page-link" href="@Url.Action(Model.Action, Model.Controller, Merge(baseRoutes, Model.Page - 1, Model.PageSize, Model.Area))" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>
     </li>
@@ -18,6 +48,9 @@
     }
     <li class="page-item @(Model.Page >= totalPages ? "disabled" : string.Empty)">
       <a class="page-link" href="@Url.Action(Model.Action, Model.Controller, Merge(baseRoutes, Model.Page + 1, Model.PageSize, Model.Area))" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>
+    </li>
+    <li class="page-item @(Model.Page >= totalPages ? "disabled" : string.Empty)">
+      <a class="page-link" href="@Url.Action(Model.Action, Model.Controller, Merge(baseRoutes, totalPages, Model.PageSize, Model.Area))" aria-label="Last"><span aria-hidden="true">&raquo;&raquo;</span></a>
     </li>
   </ul>
 </nav>
@@ -32,4 +65,3 @@
         return routes;
     }
 }
-

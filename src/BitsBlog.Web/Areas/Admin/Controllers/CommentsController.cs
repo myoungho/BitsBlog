@@ -26,19 +26,23 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
         private HttpClient Api() => _clientFactory.CreateClient("api");
 
         [HttpGet]
-        public async Task<IActionResult> Index(int? postId, int page = 1, int pageSize = 10)
+        public async Task<IActionResult> Index(int? postId, int page = 1, int pageSize = 10, string? q = null, string? sort = null)
         {
             (page, pageSize) = BitsBlog.Web.Services.PagingUtils.Normalize(page, pageSize);
             int total = 0; IReadOnlyList<CommentVm> items = Array.Empty<CommentVm>();
             if (postId.HasValue)
             {
-                var res = await Api().GetAsync($"posts/{postId.Value}/comments?page={page}&pageSize={pageSize}");
+                var url = $"posts/{postId.Value}/comments?page={page}&pageSize={pageSize}" +
+                          (string.IsNullOrWhiteSpace(q) ? string.Empty : $"&q={Uri.EscapeDataString(q)}") +
+                          (string.IsNullOrWhiteSpace(sort) ? string.Empty : $"&sort={Uri.EscapeDataString(sort)}");
+                var res = await Api().GetAsync(url);
                 res.EnsureSuccessStatusCode();
                 items = await res.Content.ReadFromJsonAsync<IReadOnlyList<CommentVm>>() ?? Array.Empty<CommentVm>();
                 total = BitsBlog.Web.Services.PagingUtils.ParseTotalCount(res);
             }
             ViewData["PostId"] = postId;
             var vm = new BitsBlog.Web.Models.PagedResult<CommentVm>(items, page, pageSize, total);
+            ViewData["q"] = q; ViewData["sort"] = sort;
             return View(vm);
         }
 

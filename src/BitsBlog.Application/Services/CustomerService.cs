@@ -84,16 +84,34 @@ namespace BitsBlog.Application.Services
             return r;
         }
 
-        public async Task<IReadOnlyList<BitsBlog.Application.DTOs.UserDto>> ListUsersAsync(int skip = 0, int take = 100)
+        public async Task<IReadOnlyList<BitsBlog.Application.DTOs.UserDto>> ListUsersAsync(int skip = 0, int take = 100, string? q = null, string? sort = null)
         {
             if (take <= 0) take = 100;
             if (take > 500) take = 500;
-            var q = _repo.AsNoTracking()
-                .OrderByDescending(c => c.Id)
+            var query = _repo.AsNoTracking();
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var term = q.Trim();
+                query = query.Where(c => EF.Functions.Like(c.LoginId, "%" + term + "%") || EF.Functions.Like(c.DisplayName, "%" + term + "%"));
+            }
+            if (string.Equals(sort, "created_asc", System.StringComparison.OrdinalIgnoreCase))
+                query = query.OrderBy(c => c.Created);
+            else if (string.Equals(sort, "login_asc", System.StringComparison.OrdinalIgnoreCase))
+                query = query.OrderBy(c => c.LoginId);
+            else if (string.Equals(sort, "login_desc", System.StringComparison.OrdinalIgnoreCase))
+                query = query.OrderByDescending(c => c.LoginId);
+            else if (string.Equals(sort, "name_asc", System.StringComparison.OrdinalIgnoreCase))
+                query = query.OrderBy(c => c.DisplayName);
+            else if (string.Equals(sort, "name_desc", System.StringComparison.OrdinalIgnoreCase))
+                query = query.OrderByDescending(c => c.DisplayName);
+            else
+                query = query.OrderByDescending(c => c.Created);
+
+            var sel = query
                 .Skip(skip)
                 .Take(take)
                 .Select(c => new BitsBlog.Application.DTOs.UserDto(c.Id, c.LoginId, c.DisplayName, c.Role, c.Created));
-            return await q.ToListAsync();
+            return await sel.ToListAsync();
         }
 
         public async Task<BitsBlog.Application.DTOs.UserDto?> GetUserByIdAsync(int id)
@@ -104,8 +122,16 @@ namespace BitsBlog.Application.Services
             return await q.FirstOrDefaultAsync();
         }
 
-        public Task<int> CountUsersAsync()
-            => _repo.AsNoTracking().CountAsync();
+        public Task<int> CountUsersAsync(string? q = null)
+        {
+            var query = _repo.AsNoTracking();
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var term = q.Trim();
+                query = query.Where(c => EF.Functions.Like(c.LoginId, "%" + term + "%") || EF.Functions.Like(c.DisplayName, "%" + term + "%"));
+            }
+            return query.CountAsync();
+        }
 
         public async Task<bool> SetRoleAsync(int id, string role)
         {

@@ -15,9 +15,9 @@ namespace BitsBlog.Application.Services
         Task<BitsBlog.Application.DTOs.ProfileDto?> GetProfileAsync(string loginId);
 
         // Admin management
-        Task<IReadOnlyList<BitsBlog.Application.DTOs.UserDto>> ListUsersAsync(int skip = 0, int take = 100);
+        Task<IReadOnlyList<BitsBlog.Application.DTOs.UserDto>> ListUsersAsync(int skip = 0, int take = 100, string? q = null, string? sort = null);
         Task<BitsBlog.Application.DTOs.UserDto?> GetUserByIdAsync(int id);
-        Task<int> CountUsersAsync();
+        Task<int> CountUsersAsync(string? q = null);
         Task<bool> SetRoleAsync(int id, string role);
         Task<bool> DeleteUserAsync(int id);
 

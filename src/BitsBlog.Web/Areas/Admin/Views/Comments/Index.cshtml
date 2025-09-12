@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "코멘트관리";
     var postId = ViewData["PostId"] as int?;
+    var q = ViewData["q"] as string; var sort = ViewData["sort"] as string;
 }
 @await Html.PartialAsync("~/Areas/Admin/Views/Shared/_AdminNav.cshtml")
 @if (TempData["Error"] is string err) {<div class="alert alert-danger">@err</div>}
@@ -17,6 +18,15 @@
       </div>
       <div class="col-auto">
         <input class="form-control" type="number" id="postId" name="postId" value="@postId" min="1" />
+      </div>
+      <div class="col-md-4">
+        <input class="form-control" type="text" id="q" name="q" value="@q" placeholder="내용/작성자" />
+      </div>
+      <div class="col-md-3">
+        <select class="form-select" id="sort" name="sort">
+          @if (string.IsNullOrEmpty(sort)) {<option value="" selected="selected">최신순</option>} else {<option value="">최신순</option>}
+          @if (string.Equals(sort,"created_asc")) {<option value="created_asc" selected="selected">오래된순</option>} else {<option value="created_asc">오래된순</option>}
+        </select>
       </div>
       <div class="col-auto">
         <button class="btn btn-primary" type="submit"><i class="bi bi-search me-1"></i>조회</button>
@@ -68,8 +78,7 @@
     </div>
     @if ((ViewData["PostId"] as int?).HasValue)
     {
-      var extra = new System.Collections.Generic.Dictionary<string, object?> { { "postId", ViewData["PostId"] } };
-      @await Html.PartialAsync("~/Views/Shared/_Pagination.cshtml", new BitsBlog.Web.Models.PaginationModel { Area = "Admin", Controller = "Comments", Action = "Index", Page = Model.Page, PageSize = Model.PageSize, Total = Model.Total, ExtraRouteValues = extra })
+      @await Html.PartialAsync("~/Views/Shared/_Pagination.cshtml", new BitsBlog.Web.Models.PaginationModel { Area = "Admin", Controller = "Comments", Action = "Index", Page = Model.Page, PageSize = Model.PageSize, Total = Model.Total, ExtraRouteValues = new System.Collections.Generic.Dictionary<string, object?> { ["postId"] = ViewData["PostId"], ["q"] = q, ["sort"] = sort } })
     }
   </div>
 </div>

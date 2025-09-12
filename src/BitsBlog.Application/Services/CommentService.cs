@@ -29,11 +29,20 @@ namespace BitsBlog.Application.Services
             });
         }
 
-        public async Task<IReadOnlyList<CommentDto>> GetCommentsByPostIdPagedAsync(int postId, int skip, int take)
+        public async Task<IReadOnlyList<CommentDto>> GetCommentsByPostIdPagedAsync(int postId, int skip, int take, string? q = null, string? sort = null)
         {
-            var q = _repository.AsNoTracking()
-                .Where(c => c.PostId == postId)
-                .OrderByDescending(c => c.Id)
+            var query = _repository.AsNoTracking().Where(c => c.PostId == postId);
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var term = q.Trim();
+                query = query.Where(c => EF.Functions.Like(c.Content, "%" + term + "%") || EF.Functions.Like(c.AuthorDisplayName!, "%" + term + "%"));
+            }
+            if (string.Equals(sort, "created_asc", System.StringComparison.OrdinalIgnoreCase))
+                query = query.OrderBy(c => c.Created);
+            else
+                query = query.OrderByDescending(c => c.Created);
+
+            var sel = query
                 .Skip(skip)
                 .Take(take)
                 .Select(c => new CommentDto(c.Id, c.PostId, c.Content, c.Created)
@@ -42,11 +51,19 @@ namespace BitsBlog.Application.Services
                     AuthorDisplayName = c.AuthorDisplayName,
                     CustomerId = c.CustomerId
                 });
-            return await q.ToListAsync();
+            return await sel.ToListAsync();
         }
 
-        public Task<int> CountByPostIdAsync(int postId)
-            => _repository.AsNoTracking().CountAsync(c => c.PostId == postId);
+        public Task<int> CountByPostIdAsync(int postId, string? q = null)
+        {
+            var query = _repository.AsNoTracking().Where(c => c.PostId == postId);
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var term = q.Trim();
+                query = query.Where(c => EF.Functions.Like(c.Content, "%" + term + "%") || EF.Functions.Like(c.AuthorDisplayName!, "%" + term + "%"));
+            }
+            return query.CountAsync();
+        }
 
         public async Task<CommentDto> CreateAsync(int postId, string content, string? authorLoginId = null, string? authorDisplayName = null, int? customerId = null)
         {

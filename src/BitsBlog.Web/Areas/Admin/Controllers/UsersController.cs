@@ -19,15 +19,19 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
         public record UserVm(int Id, string LoginId, string DisplayName, string Role, System.DateTime Created);
         public record SetRoleRequest(string Role);
 
-        public async Task<IActionResult> Index(int page = 1, int pageSize = 10)
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 10, string? q = null, string? sort = null)
         {
             (page, pageSize) = BitsBlog.Web.Services.PagingUtils.Normalize(page, pageSize);
             var client = Api();
-            var res = await client.GetAsync($"users?page={page}&pageSize={pageSize}");
+            var url = $"users?page={page}&pageSize={pageSize}" +
+                      (string.IsNullOrWhiteSpace(q) ? string.Empty : $"&q={Uri.EscapeDataString(q)}") +
+                      (string.IsNullOrWhiteSpace(sort) ? string.Empty : $"&sort={Uri.EscapeDataString(sort)}");
+            var res = await client.GetAsync(url);
             res.EnsureSuccessStatusCode();
             var items = await res.Content.ReadFromJsonAsync<IReadOnlyList<UserVm>>() ?? Array.Empty<UserVm>();
             var total = BitsBlog.Web.Services.PagingUtils.ParseTotalCount(res);
             var vm = new BitsBlog.Web.Models.PagedResult<UserVm>(items, page, pageSize, total);
+            ViewData["q"] = q; ViewData["sort"] = sort;
             return View(vm);
         }
 

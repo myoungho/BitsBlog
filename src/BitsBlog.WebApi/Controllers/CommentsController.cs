@@ -20,14 +20,14 @@ namespace BitsBlog.WebApi.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<IActionResult> Get(int postId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> Get(int postId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? q = null, [FromQuery] string? sort = null)
         {
             if (page < 1) page = 1;
             if (pageSize < 1) pageSize = 10;
             if (pageSize > 100) pageSize = 100;
             var skip = (page - 1) * pageSize;
-            var total = await _service.CountByPostIdAsync(postId);
-            var comments = await _service.GetCommentsByPostIdPagedAsync(postId, skip, pageSize);
+            var total = await _service.CountByPostIdAsync(postId, q);
+            var comments = await _service.GetCommentsByPostIdPagedAsync(postId, skip, pageSize, q, sort);
             Response.Headers["X-Total-Count"] = total.ToString();
             return Ok(comments);
         }

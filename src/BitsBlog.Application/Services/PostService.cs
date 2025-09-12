@@ -28,10 +28,20 @@ namespace BitsBlog.Application.Services
             });
         }
 
-        public async Task<IReadOnlyList<PostDto>> GetPostsPagedAsync(int skip, int take)
+        public async Task<IReadOnlyList<PostDto>> GetPostsPagedAsync(int skip, int take, string? q = null, string? sort = null)
         {
-            var q = _repository.AsNoTracking()
-                .OrderByDescending(p => p.Id)
+            var query = _repository.AsNoTracking();
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var term = q.Trim();
+                query = query.Where(p => EF.Functions.Like(p.Title, "%" + term + "%") || EF.Functions.Like(p.Content, "%" + term + "%"));
+            }
+            if (string.Equals(sort, "created_asc", System.StringComparison.OrdinalIgnoreCase))
+                query = query.OrderBy(p => p.Created);
+            else
+                query = query.OrderByDescending(p => p.Created);
+
+            var sel = query
                 .Skip(skip)
                 .Take(take)
                 .Select(p => new PostDto(p.Id, p.Title, p.Content, p.Created)
@@ -40,11 +50,19 @@ namespace BitsBlog.Application.Services
                     AuthorDisplayName = p.AuthorDisplayName,
                     CustomerId = p.CustomerId
                 });
-            return await q.ToListAsync();
+            return await sel.ToListAsync();
         }
 
-        public Task<int> CountAsync()
-            => _repository.AsNoTracking().CountAsync();
+        public Task<int> CountAsync(string? q = null)
+        {
+            var query = _repository.AsNoTracking();
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var term = q.Trim();
+                query = query.Where(p => EF.Functions.Like(p.Title, "%" + term + "%") || EF.Functions.Like(p.Content, "%" + term + "%"));
+            }
+            return query.CountAsync();
+        }
 
         public async Task<PostDto> CreateAsync(string title, string content, string? authorLoginId = null, string? authorDisplayName = null, int? customerId = null)
         {

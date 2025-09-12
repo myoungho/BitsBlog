@@ -5,11 +5,30 @@
 @await Html.PartialAsync("~/Areas/Admin/Views/Shared/_AdminNav.cshtml")
 @{
   var totalPages = (int)Math.Ceiling((double)Model.Total / Math.Max(1, Model.PageSize));
+  var q = ViewData["q"] as string;
+  var sort = ViewData["sort"] as string;
 }
 @if (TempData["Error"] is string err) {<div class="alert alert-danger">@err</div>}
 
 <div class="card shadow-sm">
   <div class="card-body">
+    <form method="get" class="row g-2 align-items-end mb-3">
+      <div class="col-md-6">
+        <label class="form-label" for="q">검색</label>
+        <input class="form-control" type="text" id="q" name="q" value="@q" placeholder="제목/내용" />
+      </div>
+      <div class="col-md-3">
+        <label class="form-label" for="sort">정렬</label>
+        <select class="form-select" id="sort" name="sort">
+          @if (string.IsNullOrEmpty(sort)) {<option value="" selected="selected">최신순</option>} else {<option value="">최신순</option>}
+          @if (string.Equals(sort,"created_asc")) {<option value="created_asc" selected="selected">오래된순</option>} else {<option value="created_asc">오래된순</option>}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label d-block">&nbsp;</label>
+        <button type="submit" class="btn btn-outline-primary">검색</button>
+      </div>
+    </form>
     <div class="d-flex align-items-center justify-content-between mb-3">
       <h5 class="card-title mb-0">게시글관리</h5>
       <span class="text-body-secondary">총 @Model.Total 건</span>
@@ -44,6 +63,6 @@
         </tbody>
       </table>
     </div>
-    @await Html.PartialAsync("~/Views/Shared/_Pagination.cshtml", new BitsBlog.Web.Models.PaginationModel { Area = "Admin", Controller = "Posts", Action = "Index", Page = Model.Page, PageSize = Model.PageSize, Total = Model.Total })
+    @await Html.PartialAsync("~/Views/Shared/_Pagination.cshtml", new BitsBlog.Web.Models.PaginationModel { Area = "Admin", Controller = "Posts", Action = "Index", Page = Model.Page, PageSize = Model.PageSize, Total = Model.Total, ExtraRouteValues = new System.Collections.Generic.Dictionary<string, object?> { ["q"] = q, ["sort"] = sort } })
   </div>
 </div>

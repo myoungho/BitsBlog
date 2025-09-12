@@ -11,6 +11,9 @@ namespace BitsBlog.Web.Models
         public int PageSize { get; set; } = 10;
         public int Total { get; set; }
         public IDictionary<string, object?> ExtraRouteValues { get; set; } = new Dictionary<string, object?>();
+
+        // UI options
+        public bool ShowPageSize { get; set; } = true;
+        public int[] PageSizeOptions { get; set; } = new[] { 10, 20, 50, 100 };
     }
 }
-
