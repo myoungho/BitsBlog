@@ -1,0 +1,53 @@
+using System.ComponentModel.DataAnnotations;
+using BitsBlog.Application.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace BitsBlog.WebApi.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize(Roles = "Admin")]
+    public class UsersController : ControllerBase
+    {
+        private readonly ICustomerService _customers;
+        public UsersController(ICustomerService customers)
+        {
+            _customers = customers;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Get([FromQuery] int skip = 0, [FromQuery] int take = 100)
+        {
+            var list = await _customers.ListUsersAsync(skip, take);
+            return Ok(list);
+        }
+
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var user = await _customers.GetUserByIdAsync(id);
+            return user is null ? NotFound() : Ok(user);
+        }
+
+        public record SetRoleRequest([Required] string Role);
+
+        [HttpPut("{id:int}/role")]
+        public async Task<IActionResult> SetRole(int id, [FromBody] SetRoleRequest req)
+        {
+            if (string.IsNullOrWhiteSpace(req.Role)) return BadRequest();
+            var ok = await _customers.SetRoleAsync(id, req.Role);
+            if (!ok) return NotFound();
+            return NoContent();
+        }
+
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var ok = await _customers.DeleteUserAsync(id);
+            if (!ok) return NotFound();
+            return NoContent();
+        }
+    }
+}
+

@@ -1,6 +1,6 @@
+@model BitsBlog.Web.Controllers.AccountController.ProfileViewModel
 @{
     ViewData["Title"] = "Profile";
-    var display = ViewData["DisplayName"] as string ?? "User";
 }
 <div class="row justify-content-center">
   <div class="col-12 col-md-8 col-lg-6">
@@ -9,21 +9,66 @@
         <div class="d-flex align-items-center mb-3">
           <i class="bi bi-person-circle fs-1 me-3" aria-hidden="true"></i>
           <div>
-            <h5 class="mb-0">@display</h5>
-            <small class="text-body-secondary">Signed in</small>
+            <h5 class="mb-0">@Model.DisplayName</h5>
+            <small class="text-body-secondary">@Model.LoginId (@Model.Role)</small>
           </div>
         </div>
 
-        <div class="d-flex gap-2">
-          <a href="/" class="btn btn-outline-secondary">Home</a>
-          <form method="post" action="/Account/Logout" class="d-inline">
-            @Html.AntiForgeryToken()
-            <button type="submit" class="btn btn-danger">Logout</button>
-          </form>
+        @if (TempData["Error"] is string err)
+        {
+          <div class="alert alert-danger">@err</div>
+        }
+        @if (TempData["Success"] is string ok)
+        {
+          <div class="alert alert-success">@ok</div>
+        }
+
+        <form method="post" asp-action="Profile" class="mb-3">
+          @Html.AntiForgeryToken()
+          <div class="mb-3">
+            <label class="form-label" for="displayName">Display Name</label>
+            <input class="form-control" type="text" id="displayName" name="displayName" value="@Model.DisplayName" maxlength="100" required />
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">저장</button>
+            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#changePasswordModal">비밀번호 변경</button>
+            <a href="/" class="btn btn-outline-secondary">Home</a>
+            <form method="post" action="/Account/Logout" class="d-inline">
+              @Html.AntiForgeryToken()
+              <button type="submit" class="btn btn-danger">Logout</button>
+            </form>
+          </div>
+        </form>
+
+        <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="changePasswordLabel">비밀번호 변경</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <form method="post" asp-action="ChangePassword">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                  <div class="mb-3">
+                    <label class="form-label" for="currentPassword">현재 비밀번호</label>
+                    <input class="form-control" id="currentPassword" name="currentPassword" type="password" required />
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label" for="newPassword">새 비밀번호</label>
+                    <input class="form-control" id="newPassword" name="newPassword" type="password" minlength="6" required />
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">취소</button>
+                  <button type="submit" class="btn btn-primary">변경</button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
+
       </div>
     </div>
   </div>
-  
 </div>
-

@@ -85,5 +85,42 @@ namespace BitsBlog.WebApi.Controllers
         public record RegisterRequest(string Email, string Password, string? DisplayName);
         public record LoginRequest(string Email, string Password);
         public record AuthResponse(string AccessToken, DateTime Expires, string Role, string DisplayName);
+
+        public record UpdateProfileRequest(string DisplayName);
+
+        [Authorize]
+        [HttpPut("profile")]
+        public async Task<ActionResult<AuthResponse>> UpdateProfile([FromBody] UpdateProfileRequest request)
+        {
+            var loginId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+            var (ok, error) = await _customers.UpdateDisplayNameAsync(loginId, request.DisplayName ?? string.Empty);
+            if (!ok) return BadRequest(error ?? "Update failed");
+            var me = await _customers.GetProfileAsync(loginId);
+            if (me is null) return Unauthorized();
+            var token = GenerateJwt(new Customer
+            {
+                LoginId = me.Value.LoginId,
+                DisplayName = me.Value.DisplayName,
+                Role = me.Value.Role
+            });
+            return Ok(new AuthResponse(token.Token, token.Expires, me.Value.Role, me.Value.DisplayName));
+        }
+
+        public record ChangePasswordRequest(string CurrentPassword, string NewPassword);
+
+        [Authorize]
+        [HttpPut("password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+        {
+            var loginId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+            var (ok, error) = await _customers.ChangePasswordAsync(loginId, request.CurrentPassword ?? string.Empty, request.NewPassword ?? string.Empty);
+            if (!ok)
+            {
+                if (string.Equals(error, "Invalid current password", StringComparison.OrdinalIgnoreCase))
+                    return Unauthorized();
+                return BadRequest(error ?? "Change password failed");
+            }
+            return NoContent();
+        }
     }
 }

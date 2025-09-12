@@ -3,10 +3,12 @@
     var title = ViewData["Title"] as string ?? "BitsBlog";
     var apiBase = (Configuration["Api:BaseUrl"] ?? "/api/").TrimEnd('/');
     string? userDisplay = null;
+    string? userRole = null;
     var jwt = Context.Request.Cookies["jwt"];
     if (!string.IsNullOrEmpty(jwt))
     {
         userDisplay = BitsBlog.Web.Services.JwtReader.TryGetDisplayName(jwt);
+        userRole = BitsBlog.Web.Services.JwtReader.TryGetRole(jwt);
     }
     // No cookie fallback: rely solely on JWT claims
 }
@@ -102,6 +104,9 @@
           <ul class="navbar-nav ms-auto">
             <li class="nav-item"><a class="nav-link" href="/Posts">Posts</a></li>
             <li class="nav-item"><a class="nav-link" href="/Posts/Create">New Post</a></li>
+            @if (string.Equals(userRole, "Admin", StringComparison.OrdinalIgnoreCase)) {
+              <li class="nav-item"><a class="nav-link" href="/Admin">Admin</a></li>
+            }
           </ul>
           <div class="d-lg-flex align-items-center ms-lg-3 mt-2 mt-lg-0 gap-2">
             @if (Context.Request.Cookies["jwt"] == null)

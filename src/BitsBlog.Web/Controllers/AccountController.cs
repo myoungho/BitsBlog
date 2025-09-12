@@ -59,7 +59,9 @@ namespace BitsBlog.Web.Controllers
                 return View();
             }
             SetJwtCookie(auth);
-            // No additional cookie: navbar reads display name from JWT
+            // Admin은 관리자 홈으로 리다이렉트
+            if (string.Equals(auth.Role, "Admin", System.StringComparison.OrdinalIgnoreCase))
+                return Redirect("/Admin");
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 return Redirect(returnUrl);
             return RedirectToAction(nameof(HomeController.Index), "Home");
@@ -93,7 +95,8 @@ namespace BitsBlog.Web.Controllers
                 return View();
             }
             SetJwtCookie(auth);
-            // No additional cookie: navbar reads display name from JWT
+            if (string.Equals(auth.Role, "Admin", System.StringComparison.OrdinalIgnoreCase))
+                return Redirect("/Admin");
             return RedirectToAction(nameof(HomeController.Index), "Home");
         }
 
@@ -108,12 +111,67 @@ namespace BitsBlog.Web.Controllers
 
         [HttpGet]
         [Authorize]
-        public IActionResult Profile()
+        public async Task<IActionResult> Profile()
         {
-            var jwt = Request.Cookies["jwt"];
-            var display = BitsBlog.Web.Services.JwtReader.TryGetDisplayName(jwt) ?? "User";
-            ViewData["DisplayName"] = display;
-            return View();
+            var client = Api();
+            var meResp = await client.GetAsync("auth/me");
+            if (!meResp.IsSuccessStatusCode) return RedirectToAction("Login");
+            var json = await meResp.Content.ReadFromJsonAsync<System.Text.Json.Nodes.JsonObject>();
+            var loginId = (string?)json?["loginId"] ?? (string?)json?["LoginId"] ?? string.Empty;
+            var display = (string?)json?["displayName"] ?? (string?)json?["DisplayName"] ?? loginId;
+            var role = (string?)json?["role"] ?? (string?)json?["Role"] ?? "User";
+            var created = (System.DateTime?)json?["created"] ?? default;
+            var vm = new ProfileViewModel(loginId, display, role, created);
+            return View(vm);
+        }
+
+        public record ProfileViewModel(string LoginId, string DisplayName, string Role, System.DateTime? Created);
+
+        public record UpdateProfileRequest(string DisplayName);
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize]
+        public async Task<IActionResult> Profile(string displayName)
+        {
+            var client = Api();
+            var res = await client.PutAsJsonAsync("auth/profile", new UpdateProfileRequest(displayName));
+            if (!res.IsSuccessStatusCode)
+            {
+                TempData["Error"] = "프로필 저장 실패";
+                return RedirectToAction(nameof(Profile));
+            }
+            var auth = await res.Content.ReadFromJsonAsync<AuthResponse>();
+            if (auth is not null)
+            {
+                SetJwtCookie(auth);
+            }
+            TempData["Success"] = "프로필이 저장되었습니다.";
+            return RedirectToAction(nameof(Profile));
+        }
+
+        public record ChangePasswordRequest(string CurrentPassword, string NewPassword);
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize]
+        public async Task<IActionResult> ChangePassword(string currentPassword, string newPassword)
+        {
+            var client = Api();
+            var res = await client.PutAsJsonAsync("auth/password", new ChangePasswordRequest(currentPassword, newPassword));
+            if (res.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                TempData["Error"] = "현재 비밀번호가 올바르지 않습니다.";
+            }
+            else if (!res.IsSuccessStatusCode)
+            {
+                TempData["Error"] = "비밀번호 변경 실패";
+            }
+            else
+            {
+                TempData["Success"] = "비밀번호가 변경되었습니다.";
+            }
+            return RedirectToAction(nameof(Profile));
         }
     }
 }

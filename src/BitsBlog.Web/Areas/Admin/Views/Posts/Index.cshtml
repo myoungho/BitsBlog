@@ -1,0 +1,45 @@
+@model IEnumerable<BitsBlog.Web.Areas.Admin.Controllers.PostsController.PostVm>
+@{
+    ViewData["Title"] = "게시글관리";
+}
+@await Html.PartialAsync("~/Areas/Admin/Views/Shared/_AdminNav.cshtml")
+@if (TempData["Error"] is string err) {<div class="alert alert-danger">@err</div>}
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h5 class="card-title mb-0">게시글관리</h5>
+      <span class="text-body-secondary">총 @Model.Count() 건</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-striped table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>제목</th>
+            <th>작성자</th>
+            <th>작성일</th>
+            <th style="width:140px">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+        @foreach (var p in Model) {
+          <tr>
+            <td>@p.Id</td>
+            <td class="text-truncate" style="max-width: 380px">@p.Title</td>
+            <td>@p.AuthorDisplayName</td>
+            <td>@p.Created.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+            <td>
+              <form method="post" asp-action="Delete" onsubmit="return confirm('삭제하시겠습니까?')">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@p.Id" />
+                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>삭제</button>
+              </form>
+            </td>
+          </tr>
+        }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
