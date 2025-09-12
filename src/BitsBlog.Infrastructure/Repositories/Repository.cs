@@ -61,7 +61,33 @@ namespace BitsBlog.Infrastructure.Repositories
         public async Task InsertRangeAsync(IEnumerable<T> entities, CancellationToken ct = default)
             => await Entities.AddRangeAsync(entities, ct);
 
-        // Removed GetAllAsync to discourage full table reads
+        public async Task<List<TResult>> QueryAsync<TResult>(Func<IQueryable<T>, IQueryable<TResult>> query, CancellationToken cancellationToken = default)
+        {
+            var q = query(Entities.AsNoTracking());
+            return await q.ToListAsync(cancellationToken);
+        }
+
+        public Task<int> CountAsync(Func<IQueryable<T>, IQueryable<T>> query, CancellationToken cancellationToken = default)
+        {
+            var q = query(Entities.AsNoTracking());
+            return q.CountAsync(cancellationToken);
+        }
+
+        public Task<int> CountAsync<TResult>(Func<IQueryable<T>, IQueryable<TResult>> query, CancellationToken cancellationToken = default)
+        {
+            var q = query(Entities.AsNoTracking());
+            return q.CountAsync(cancellationToken);
+        }
+
+        public Task<int> CountAsync<TResult>(IQueryable<TResult> query, CancellationToken cancellationToken = default)
+        {
+            return EntityFrameworkQueryableExtensions.CountAsync(query, cancellationToken);
+        }
+
+        public Task<List<TResult>> ToListAsync<TResult>(IQueryable<TResult> query, CancellationToken cancellationToken = default)
+        {
+            return EntityFrameworkQueryableExtensions.ToListAsync(query, cancellationToken);
+        }
 
         public async Task<List<T>> ListAsync(Expression<Func<T, bool>>? predicate = null, CancellationToken ct = default)
             => predicate is null ? await AsNoTracking().ToListAsync(ct) : await AsNoTracking().Where(predicate).ToListAsync(ct);
@@ -152,7 +178,5 @@ namespace BitsBlog.Infrastructure.Repositories
                 throw;
             }
         }
-
-
     }
 }

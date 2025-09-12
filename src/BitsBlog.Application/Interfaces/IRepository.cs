@@ -26,7 +26,12 @@ namespace BitsBlog.Application.Interfaces
 
         Task<T?> GetByKeyAsync(CancellationToken ct = default, params object[] keys);
 
-        // Removed GetAllAsync to discourage full table reads
+        Task<List<TResult>> QueryAsync<TResult>(Func<IQueryable<T>, IQueryable<TResult>> query, CancellationToken cancellationToken = default);
+
+        Task<List<TResult>> ToListAsync<TResult>(IQueryable<TResult> query, CancellationToken cancellationToken = default);
+        Task<int> CountAsync<TResult>(IQueryable<TResult> query, CancellationToken cancellationToken = default);
+        Task<int> CountAsync(Func<IQueryable<T>, IQueryable<T>> query, CancellationToken cancellationToken = default);
+        Task<int> CountAsync<TResult>(Func<IQueryable<T>, IQueryable<TResult>> query, CancellationToken cancellationToken = default);
 
         Task<List<T>> ListAsync(Expression<Func<T, bool>>? predicate = null, CancellationToken ct = default);
         Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null, CancellationToken ct = default);
