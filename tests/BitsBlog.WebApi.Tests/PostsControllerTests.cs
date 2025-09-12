@@ -24,7 +24,8 @@ namespace BitsBlog.WebApi.Tests
                 new Post { Id = 2, Title = "Title2", Content = "Content2", Created = DateTime.UtcNow }
             };
             var repo = new Mock<IRepository<Post>>();
-            repo.Setup(r => r.GetAllAsync()).ReturnsAsync(posts);
+            repo.Setup(r => r.ListAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Post, bool>>>(), It.IsAny<System.Threading.CancellationToken>()))
+                .ReturnsAsync(posts.ToList());
             var service = new PostService(repo.Object);
             var controller = new PostsController(service, new Ganss.Xss.HtmlSanitizer());
 
@@ -90,7 +91,7 @@ namespace BitsBlog.WebApi.Tests
             var repo = new Mock<IRepository<Post>>();
             repo.Setup(r => r.GetByIdAsync(post.Id)).ReturnsAsync(post);
             repo.Setup(r => r.UpdateAsync(post)).Returns(Task.CompletedTask);
-            repo.Setup(r => r.SaveDbContextChangesAsync()).Returns(Task.CompletedTask);
+            repo.Setup(r => r.SaveChangesAsync(It.IsAny<System.Threading.CancellationToken>())).ReturnsAsync(0);
             var service = new PostService(repo.Object);
             var controller = new PostsController(service, new Ganss.Xss.HtmlSanitizer());
 
@@ -123,7 +124,7 @@ namespace BitsBlog.WebApi.Tests
             var repo = new Mock<IRepository<Post>>();
             repo.Setup(r => r.GetByIdAsync(post.Id)).ReturnsAsync(post);
             repo.Setup(r => r.DeleteAsync(post)).Returns(Task.CompletedTask);
-            repo.Setup(r => r.SaveDbContextChangesAsync()).Returns(Task.CompletedTask);
+            repo.Setup(r => r.SaveChangesAsync(It.IsAny<System.Threading.CancellationToken>())).ReturnsAsync(0);
             var service = new PostService(repo.Object);
             var controller = new PostsController(service, new Ganss.Xss.HtmlSanitizer());
 

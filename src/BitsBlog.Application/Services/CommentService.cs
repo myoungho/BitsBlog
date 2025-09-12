@@ -112,7 +112,7 @@ namespace BitsBlog.Application.Services
             var c = await _repository.GetByIdAsync(id);
             if (c is null) return false;
             await _repository.DeleteAsync(c);
-            await _repository.SaveDbContextChangesAsync();
+            await _repository.SaveChangesAsync();
             return true;
         }
     }

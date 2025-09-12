@@ -60,7 +60,7 @@ namespace BitsBlog.Infrastructure.Repositories
         public async Task InsertRangeAsync(IEnumerable<T> entities, CancellationToken ct = default)
             => await Entities.AddRangeAsync(entities, ct);
 
-        public async Task<IEnumerable<T>> GetAllAsync() => await Entities.ToListAsync();
+        // Removed GetAllAsync to discourage full table reads
 
         public async Task<List<T>> ListAsync(Expression<Func<T, bool>>? predicate = null, CancellationToken ct = default)
             => predicate is null ? await AsNoTracking().ToListAsync(ct) : await AsNoTracking().Where(predicate).ToListAsync(ct);

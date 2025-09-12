@@ -25,8 +25,7 @@ namespace BitsBlog.Application.Interfaces
 
         Task<T?> GetByKeyAsync(CancellationToken ct = default, params object[] keys);
 
-        [System.Obsolete("Use AsQueryable().ToListAsync() or ListAsync() instead")]
-        Task<IEnumerable<T>> GetAllAsync();
+        // Removed GetAllAsync to discourage full table reads
 
         Task<List<T>> ListAsync(Expression<Func<T, bool>>? predicate = null, CancellationToken ct = default);
         Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null, CancellationToken ct = default);

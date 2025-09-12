@@ -18,9 +18,7 @@ namespace BitsBlog.Application.Services
 
         public async Task<IEnumerable<PostDto>> GetPostsAsync()
         {
-            var posts = await _repository.AsNoTracking()
-                .OrderByDescending(p => p.Id)
-                .ToListAsync();
+            var posts = await _repository.ListAsync();
             return posts.Select(p => new PostDto(p.Id, p.Title, p.Content, p.Created)
             {
                 AuthorLoginId = p.AuthorLoginId,
@@ -111,7 +109,7 @@ namespace BitsBlog.Application.Services
             var post = await _repository.GetByIdAsync(id);
             if (post is null) return false;
             await _repository.DeleteAsync(post);
-            await _repository.SaveDbContextChangesAsync();
+            await _repository.SaveChangesAsync();
             return true;
         }
     }
