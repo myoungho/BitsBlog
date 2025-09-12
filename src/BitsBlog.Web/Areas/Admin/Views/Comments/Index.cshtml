@@ -5,7 +5,6 @@
     var q = ViewData["q"] as string; var sort = ViewData["sort"] as string;
 }
 
-@await Html.PartialAsync("~/Areas/Admin/Views/Shared/_AdminNav.cshtml")
 
 @if (ViewData["Error"] is string err && !string.IsNullOrWhiteSpace(err)) {<div class="alert alert-danger">@err</div>}
 @if (TempData["Error"] is string tempErr) {<div class="alert alert-danger">@tempErr</div>}
@@ -71,7 +70,6 @@
     }
   </div>
   </div>
-
 
 
 

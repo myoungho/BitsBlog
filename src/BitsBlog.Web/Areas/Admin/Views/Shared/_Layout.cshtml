@@ -53,10 +53,15 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ms-auto">
-            <li class="nav-item"><a class="nav-link" href="/">Site</a></li>
+            @{ var curPath = Context?.Request?.Path.Value ?? string.Empty; }
+            <li class="nav-item"><a class="nav-link @(curPath.Equals("/Admin", System.StringComparison.OrdinalIgnoreCase) ? "active" : string.Empty)" href="/Admin"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link @(curPath.StartsWith("/Admin/Users", System.StringComparison.OrdinalIgnoreCase) ? "active" : string.Empty)" href="/Admin/Users"><i class="bi bi-people me-1"></i>Users</a></li>
+            <li class="nav-item"><a class="nav-link @(curPath.StartsWith("/Admin/Posts", System.StringComparison.OrdinalIgnoreCase) ? "active" : string.Empty)" href="/Admin/Posts"><i class="bi bi-journal-text me-1"></i>Posts</a></li>
+            <li class="nav-item"><a class="nav-link @(curPath.StartsWith("/Admin/Comments", System.StringComparison.OrdinalIgnoreCase) ? "active" : string.Empty)" href="/Admin/Comments"><i class="bi bi-chat-left-text me-1"></i>Comments</a></li>
+            <li class="nav-item"><a class="nav-link" href="/"><i class="bi bi-house me-1"></i>Site</a></li>
             @if (string.Equals(userRole, "Admin", System.StringComparison.OrdinalIgnoreCase))
             {
-              <li class="nav-item"><span class="navbar-text">@userDisplay</span></li>
+              <li class="nav-item"><span class="navbar-text ms-lg-2">@userDisplay</span></li>
             }
           </ul>
         </div>
@@ -74,4 +79,3 @@
     @RenderSection("Scripts", required: false)
   </body>
 </html>
-

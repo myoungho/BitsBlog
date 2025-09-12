@@ -3,7 +3,6 @@
     ViewData["Title"] = "Posts";
 }
 
-@await Html.PartialAsync("~/Areas/Admin/Views/Shared/_AdminNav.cshtml")
 
 @if (ViewData["Error"] is string err && !string.IsNullOrWhiteSpace(err))
 {
@@ -62,7 +61,6 @@
     @await Html.PartialAsync("~/Views/Shared/_Pagination.cshtml", new BitsBlog.Web.Models.PaginationModel { Area = "Admin", Controller = "Posts", Action = "Index", Page = Model.Page, PageSize = Model.PageSize, Total = Model.Total, ExtraRouteValues = (string.IsNullOrWhiteSpace(ViewData["q"] as string) ? null : new System.Collections.Generic.Dictionary<string, object?> { ["q"] = ViewData["q"] }) })
   </div>
   </div>
-
 
 
 
