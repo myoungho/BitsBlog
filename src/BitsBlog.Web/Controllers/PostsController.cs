@@ -67,7 +67,7 @@ namespace BitsBlog.Web.Controllers
         {
             if (!ModelState.IsValid) return View(model);
             var client = _clientFactory.CreateClient("api");
-            var jwt = HttpContext.Request.Cookies["jwt"];
+            var jwt = HttpContext?.Request?.Cookies["jwt"];
             if (!string.IsNullOrEmpty(jwt))
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt);
             var res = await client.PostAsJsonAsync("posts", new PostCreateDto { Title = model.Title, Content = model.Content });
@@ -87,7 +87,7 @@ namespace BitsBlog.Web.Controllers
             if (post is null) return NotFound();
             var commentsPaged = await client.GetFromJsonAsync<BitsBlog.Application.DTO.Common.PagedResult<CommentDto>>($"comments?page=1&pageSize=100&postId={id}");
             var vm = new PostDetailsViewModel { Post = post, Comments = commentsPaged?.Items?.ToList() ?? new List<CommentDto>() };
-            var token = HttpContext.Request.Cookies["jwt"];
+            var token = HttpContext?.Request?.Cookies["jwt"];
             if (!string.IsNullOrEmpty(token))
             {
                 try
@@ -112,7 +112,7 @@ namespace BitsBlog.Web.Controllers
         public async Task<IActionResult> Edit(int id)
         {
             var client = _clientFactory.CreateClient("api");
-            var jwt2 = HttpContext.Request.Cookies["jwt"];
+            var jwt2 = HttpContext?.Request?.Cookies["jwt"];
             if (!string.IsNullOrEmpty(jwt2)) client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt2);
             var post = await client.GetFromJsonAsync<PostDto>($"posts/{id}");
             if (post is null) return NotFound();
@@ -127,7 +127,7 @@ namespace BitsBlog.Web.Controllers
         {
             if (!ModelState.IsValid) return View(model);
             var client = _clientFactory.CreateClient("api");
-            var jwt3 = HttpContext.Request.Cookies["jwt"];
+            var jwt3 = HttpContext?.Request?.Cookies["jwt"];
             if (!string.IsNullOrEmpty(jwt3)) client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt3);
             var res = await client.PutAsJsonAsync($"posts", new PostUpdateDto { Id = model.Id, Title = model.Title, Content = model.Content });
             if (res.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -146,7 +146,7 @@ namespace BitsBlog.Web.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var client = _clientFactory.CreateClient("api");
-            var jwt4 = HttpContext.Request.Cookies["jwt"];
+            var jwt4 = HttpContext?.Request?.Cookies["jwt"];
             if (!string.IsNullOrEmpty(jwt4)) client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt4);
             var res = await client.DeleteAsync($"posts/{id}");
             if (res.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -164,7 +164,7 @@ namespace BitsBlog.Web.Controllers
         [Authorize]
         public async Task<IActionResult> AddComment(int postId, string content)
         {
-            var token3 = HttpContext.Request.Cookies["jwt"];
+            var token3 = HttpContext?.Request?.Cookies["jwt"];
             if (string.IsNullOrEmpty(token3))
             {
                 return RedirectToAction("Login", "Account", new { returnUrl = $"/Posts/Details/{postId}" });
@@ -186,11 +186,11 @@ namespace BitsBlog.Web.Controllers
         [Authorize]
         public async Task<IActionResult> EditComment(int postId, int commentId, string content)
         {
-            var token = HttpContext.Request.Cookies["jwt"];
+            var token = HttpContext?.Request?.Cookies["jwt"];
             if (string.IsNullOrEmpty(token))
                 return RedirectToAction("Login", "Account", new { returnUrl = $"/Posts/Details/{postId}" });
             var client = _clientFactory.CreateClient("api");
-            var jwt6 = HttpContext.Request.Cookies["jwt"];
+            var jwt6 = HttpContext?.Request?.Cookies["jwt"];
             if (!string.IsNullOrEmpty(jwt6)) client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt6);
             await client.PutAsJsonAsync($"comments", new CommentUpdateDto { PostId = postId, CommentId = commentId, Content = content });
             return RedirectToAction("Details", new { id = postId });
@@ -201,11 +201,11 @@ namespace BitsBlog.Web.Controllers
         [Authorize]
         public async Task<IActionResult> DeleteComment(int postId, int commentId)
         {
-            var token = HttpContext.Request.Cookies["jwt"];
+            var token = HttpContext?.Request?.Cookies["jwt"];
             if (string.IsNullOrEmpty(token))
                 return RedirectToAction("Login", "Account", new { returnUrl = $"/Posts/Details/{postId}" });
             var client = _clientFactory.CreateClient("api");
-            var jwt7 = HttpContext.Request.Cookies["jwt"];
+            var jwt7 = HttpContext?.Request?.Cookies["jwt"];
             if (!string.IsNullOrEmpty(jwt7)) client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt7);
             await client.DeleteAsync($"comments/{commentId}");
             return RedirectToAction("Details", new { id = postId });

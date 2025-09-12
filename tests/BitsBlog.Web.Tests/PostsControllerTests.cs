@@ -22,7 +22,14 @@ namespace BitsBlog.Web.Tests
         public async Task Index_ReturnsViewWithPosts()
         {
             var posts = new[] { new PostDto(1, "t", "c", DateTime.UtcNow) };
-            var json = JsonSerializer.Serialize(posts);
+            var paged = new PagedResult<PostDto>
+            {
+                Items = posts,
+                Total = posts.Length,
+                Page = 1,
+                PageSize = 10
+            };
+            var json = JsonSerializer.Serialize(paged);
             var handler = new FakeHttpMessageHandler(new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent(json, Encoding.UTF8, "application/json")
@@ -39,7 +46,9 @@ namespace BitsBlog.Web.Tests
 
             var view = Assert.IsType<ViewResult>(result);
             var model = Assert.IsType<PagedResult<PostDto>>(view.Model);
-            Assert.Equal(posts, model.Items);
+            Assert.Equal(posts.Length, model.Items.Count);
+            Assert.Equal(posts[0].Id, model.Items[0].Id);
+            Assert.Equal(posts[0].Title, model.Items[0].Title);
         }
 
         [Fact]

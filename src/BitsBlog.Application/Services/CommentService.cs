@@ -39,8 +39,8 @@ namespace BitsBlog.Application.Services
             }
             if (!string.IsNullOrWhiteSpace(queryDto.Q))
             {
-                var term = queryDto.Q.Trim();
-                q = q.Where(c => EF.Functions.Like(c.Content, "%" + term + "%") || EF.Functions.Like(c.AuthorDisplayName!, "%" + term + "%"));
+                var termLower = queryDto.Q.Trim().ToLower();
+                q = q.Where(c => c.Content.ToLower().Contains(termLower) || (c.AuthorDisplayName != null && c.AuthorDisplayName.ToLower().Contains(termLower)));
             }
 
             var projected = q.OrderByDescending(c => c.Id).Select(c => new CommentDto(c.Id, c.PostId, c.Content, c.Created)
@@ -67,8 +67,8 @@ namespace BitsBlog.Application.Services
             }
             if (!string.IsNullOrWhiteSpace(queryDto.Q))
             {
-                var term = queryDto.Q.Trim();
-                query = query.Where(c => EF.Functions.Like(c.Content, "%" + term + "%") || EF.Functions.Like(c.AuthorDisplayName!, "%" + term + "%"));
+                var termLower = queryDto.Q.Trim().ToLower();
+                query = query.Where(c => c.Content.ToLower().Contains(termLower) || (c.AuthorDisplayName != null && c.AuthorDisplayName.ToLower().Contains(termLower)));
             }
             return query.CountAsync(ct);
         }

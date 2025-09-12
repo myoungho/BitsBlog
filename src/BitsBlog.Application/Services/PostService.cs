@@ -32,8 +32,8 @@ namespace BitsBlog.Application.Services
             var q = _repository.AsNoTracking();
             if (!string.IsNullOrWhiteSpace(queryDto.Q))
             {
-                var term = queryDto.Q.Trim();
-                q = q.Where(p => EF.Functions.Like(p.Title, "%" + term + "%"));
+                var termLower = queryDto.Q.Trim().ToLower();
+                q = q.Where(p => p.Title.ToLower().Contains(termLower));
             }
 
             var projected = q.OrderByDescending(c => c.Id).Select(p => new PostDto(p.Id, p.Title, p.Content, p.Created));
@@ -49,8 +49,8 @@ namespace BitsBlog.Application.Services
             var query = _repository.AsNoTracking();
             if (!string.IsNullOrWhiteSpace(queryDto.Q))
             {
-                var term = queryDto.Q.Trim();
-                query = query.Where(p => EF.Functions.Like(p.Title, "%" + term + "%"));
+                var termLower = queryDto.Q.Trim().ToLower();
+                query = query.Where(p => p.Title.ToLower().Contains(termLower));
             }
             return query.CountAsync(ct);
         }
