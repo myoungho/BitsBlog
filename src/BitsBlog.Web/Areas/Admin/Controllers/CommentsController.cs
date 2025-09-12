@@ -25,22 +25,20 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
 
         private HttpClient Api() => _clientFactory.CreateClient("api");
 
-        public record Paged<T>(IReadOnlyList<T> Items, int Page, int PageSize, int Total);
-
         [HttpGet]
         public async Task<IActionResult> Index(int? postId, int page = 1, int pageSize = 10)
         {
-            if (page < 1) page = 1; if (pageSize < 1) pageSize = 10; if (pageSize > 100) pageSize = 100;
+            (page, pageSize) = BitsBlog.Web.Services.PagingUtils.Normalize(page, pageSize);
             int total = 0; IReadOnlyList<CommentVm> items = Array.Empty<CommentVm>();
             if (postId.HasValue)
             {
                 var res = await Api().GetAsync($"posts/{postId.Value}/comments?page={page}&pageSize={pageSize}");
                 res.EnsureSuccessStatusCode();
                 items = await res.Content.ReadFromJsonAsync<IReadOnlyList<CommentVm>>() ?? Array.Empty<CommentVm>();
-                if (res.Headers.TryGetValues("X-Total-Count", out var vals)) int.TryParse(vals.FirstOrDefault(), out total);
+                total = BitsBlog.Web.Services.PagingUtils.ParseTotalCount(res);
             }
             ViewData["PostId"] = postId;
-            var vm = new Paged<CommentVm>(items, page, pageSize, total);
+            var vm = new BitsBlog.Web.Models.PagedResult<CommentVm>(items, page, pageSize, total);
             return View(vm);
         }
 

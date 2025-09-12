@@ -1,0 +1,35 @@
+@model BitsBlog.Web.Models.PaginationModel
+@{
+    var totalPages = BitsBlog.Web.Services.PagingUtils.TotalPages(Model.Total, Model.PageSize);
+    if (totalPages <= 1)
+    {
+        return; // nothing to render
+    }
+    var baseRoutes = new Microsoft.AspNetCore.Routing.RouteValueDictionary(Model.ExtraRouteValues ?? new System.Collections.Generic.Dictionary<string, object?>());
+}
+<nav class="mt-3" aria-label="Pagination">
+  <ul class="pagination">
+    <li class="page-item @(Model.Page <= 1 ? "disabled" : string.Empty)">
+      <a class="page-link" href="@Url.Action(Model.Action, Model.Controller, Merge(baseRoutes, Model.Page - 1, Model.PageSize, Model.Area))" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>
+    </li>
+    @for (var p = 1; p <= totalPages; p++)
+    {
+      <li class="page-item @(p == Model.Page ? "active" : string.Empty)"><a class="page-link" href="@Url.Action(Model.Action, Model.Controller, Merge(baseRoutes, p, Model.PageSize, Model.Area))">@p</a></li>
+    }
+    <li class="page-item @(Model.Page >= totalPages ? "disabled" : string.Empty)">
+      <a class="page-link" href="@Url.Action(Model.Action, Model.Controller, Merge(baseRoutes, Model.Page + 1, Model.PageSize, Model.Area))" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>
+    </li>
+  </ul>
+</nav>
+
+@functions{
+    object Merge(Microsoft.AspNetCore.Routing.RouteValueDictionary baseRoutes, int page, int pageSize, string? area)
+    {
+        var routes = new Microsoft.AspNetCore.Routing.RouteValueDictionary(baseRoutes);
+        routes["page"] = page;
+        routes["pageSize"] = pageSize;
+        if (!string.IsNullOrWhiteSpace(area)) routes["area"] = area;
+        return routes;
+    }
+}
+
