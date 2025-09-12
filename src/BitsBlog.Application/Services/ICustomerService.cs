@@ -17,6 +17,7 @@ namespace BitsBlog.Application.Services
         // Admin management
         Task<IReadOnlyList<BitsBlog.Application.DTOs.UserDto>> ListUsersAsync(int skip = 0, int take = 100);
         Task<BitsBlog.Application.DTOs.UserDto?> GetUserByIdAsync(int id);
+        Task<int> CountUsersAsync();
         Task<bool> SetRoleAsync(int id, string role);
         Task<bool> DeleteUserAsync(int id);
 

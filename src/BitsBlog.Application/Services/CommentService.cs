@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using BitsBlog.Application.DTOs;
 using BitsBlog.Application.Interfaces;
 using BitsBlog.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace BitsBlog.Application.Services
 {
@@ -17,14 +18,35 @@ namespace BitsBlog.Application.Services
 
         public async Task<IEnumerable<CommentDto>> GetCommentsByPostIdAsync(int postId)
         {
-            var comments = await _repository.GetAllAsync();
-            comments = comments.Where(c => c.PostId == postId);
-            return comments.Select(c => new CommentDto(c.Id, c.PostId, c.Content, c.Created)
+            var q = _repository.AsNoTracking()
+                .Where(c => c.PostId == postId)
+                .OrderByDescending(c => c.Id);
+            var list = await q.ToListAsync();
+            return list.Select(c => new CommentDto(c.Id, c.PostId, c.Content, c.Created)
             {
                 AuthorLoginId = c.AuthorLoginId,
                 AuthorDisplayName = c.AuthorDisplayName
             });
         }
+
+        public async Task<IReadOnlyList<CommentDto>> GetCommentsByPostIdPagedAsync(int postId, int skip, int take)
+        {
+            var q = _repository.AsNoTracking()
+                .Where(c => c.PostId == postId)
+                .OrderByDescending(c => c.Id)
+                .Skip(skip)
+                .Take(take)
+                .Select(c => new CommentDto(c.Id, c.PostId, c.Content, c.Created)
+                {
+                    AuthorLoginId = c.AuthorLoginId,
+                    AuthorDisplayName = c.AuthorDisplayName,
+                    CustomerId = c.CustomerId
+                });
+            return await q.ToListAsync();
+        }
+
+        public Task<int> CountByPostIdAsync(int postId)
+            => _repository.AsNoTracking().CountAsync(c => c.PostId == postId);
 
         public async Task<CommentDto> CreateAsync(int postId, string content, string? authorLoginId = null, string? authorDisplayName = null, int? customerId = null)
         {

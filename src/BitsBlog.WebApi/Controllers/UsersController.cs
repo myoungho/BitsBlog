@@ -17,9 +17,15 @@ namespace BitsBlog.WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get([FromQuery] int skip = 0, [FromQuery] int take = 100)
+        public async Task<IActionResult> Get([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var list = await _customers.ListUsersAsync(skip, take);
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+            var skip = (page - 1) * pageSize;
+            var total = await _customers.CountUsersAsync();
+            var list = await _customers.ListUsersAsync(skip, pageSize);
+            Response.Headers["X-Total-Count"] = total.ToString();
             return Ok(list);
         }
 
@@ -50,4 +56,3 @@ namespace BitsBlog.WebApi.Controllers
         }
     }
 }
-

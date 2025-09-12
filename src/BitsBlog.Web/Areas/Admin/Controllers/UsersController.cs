@@ -19,11 +19,18 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
         public record UserVm(int Id, string LoginId, string DisplayName, string Role, System.DateTime Created);
         public record SetRoleRequest(string Role);
 
-        public async Task<IActionResult> Index()
+        public record Paged<T>(IReadOnlyList<T> Items, int Page, int PageSize, int Total);
+
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 10)
         {
+            if (page < 1) page = 1; if (pageSize < 1) pageSize = 10; if (pageSize > 100) pageSize = 100;
             var client = Api();
-            var users = await client.GetFromJsonAsync<IEnumerable<UserVm>>("users");
-            return View(users ?? Enumerable.Empty<UserVm>());
+            var res = await client.GetAsync($"users?page={page}&pageSize={pageSize}");
+            res.EnsureSuccessStatusCode();
+            var items = await res.Content.ReadFromJsonAsync<IReadOnlyList<UserVm>>() ?? Array.Empty<UserVm>();
+            int total = 0; if (res.Headers.TryGetValues("X-Total-Count", out var vals)) int.TryParse(vals.FirstOrDefault(), out total);
+            var vm = new Paged<UserVm>(items, page, pageSize, total);
+            return View(vm);
         }
 
         [HttpPost]
@@ -57,4 +64,3 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
         }
     }
 }
-

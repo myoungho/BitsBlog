@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using BitsBlog.Application.DTOs;
 using BitsBlog.Application.Interfaces;
 using BitsBlog.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace BitsBlog.Application.Services
 {
@@ -17,13 +18,33 @@ namespace BitsBlog.Application.Services
 
         public async Task<IEnumerable<PostDto>> GetPostsAsync()
         {
-            var posts = await _repository.GetAllAsync();
+            var posts = await _repository.AsNoTracking()
+                .OrderByDescending(p => p.Id)
+                .ToListAsync();
             return posts.Select(p => new PostDto(p.Id, p.Title, p.Content, p.Created)
             {
                 AuthorLoginId = p.AuthorLoginId,
                 AuthorDisplayName = p.AuthorDisplayName
             });
         }
+
+        public async Task<IReadOnlyList<PostDto>> GetPostsPagedAsync(int skip, int take)
+        {
+            var q = _repository.AsNoTracking()
+                .OrderByDescending(p => p.Id)
+                .Skip(skip)
+                .Take(take)
+                .Select(p => new PostDto(p.Id, p.Title, p.Content, p.Created)
+                {
+                    AuthorLoginId = p.AuthorLoginId,
+                    AuthorDisplayName = p.AuthorDisplayName,
+                    CustomerId = p.CustomerId
+                });
+            return await q.ToListAsync();
+        }
+
+        public Task<int> CountAsync()
+            => _repository.AsNoTracking().CountAsync();
 
         public async Task<PostDto> CreateAsync(string title, string content, string? authorLoginId = null, string? authorDisplayName = null, int? customerId = null)
         {

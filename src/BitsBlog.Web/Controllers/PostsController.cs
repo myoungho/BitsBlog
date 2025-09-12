@@ -17,11 +17,19 @@ namespace BitsBlog.Web.Controllers
             _clientFactory = clientFactory;
         }
 
-        public async Task<IActionResult> Index()
+        public record Paged<T>(IReadOnlyList<T> Items, int Page, int PageSize, int Total);
+
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 10)
         {
+            if (page < 1) page = 1; if (pageSize < 1) pageSize = 10; if (pageSize > 100) pageSize = 100;
             var client = _clientFactory.CreateClient("api");
-            var posts = await client.GetFromJsonAsync<IEnumerable<PostDto>>("posts");
-            return View(posts);
+            var url = $"posts?page={page}&pageSize={pageSize}";
+            var res = await client.GetAsync(url);
+            res.EnsureSuccessStatusCode();
+            var items = await res.Content.ReadFromJsonAsync<IReadOnlyList<PostDto>>() ?? Array.Empty<PostDto>();
+            int total = 0; if (res.Headers.TryGetValues("X-Total-Count", out var vals)) int.TryParse(vals.FirstOrDefault(), out total);
+            var vm = new Paged<PostDto>(items, page, pageSize, total);
+            return View(vm);
         }
 
         [Authorize]

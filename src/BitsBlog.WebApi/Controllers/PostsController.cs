@@ -21,7 +21,17 @@ namespace BitsBlog.WebApi.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<IEnumerable<PostDto>> Get() => await _service.GetPostsAsync();
+        public async Task<IEnumerable<PostDto>> Get([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+            var skip = (page - 1) * pageSize;
+            var total = await _service.CountAsync();
+            var items = await _service.GetPostsPagedAsync(skip, pageSize);
+            Response.Headers["X-Total-Count"] = total.ToString();
+            return items;
+        }
 
         [AllowAnonymous]
         [HttpGet("{id}")]

@@ -102,6 +102,9 @@ namespace BitsBlog.Application.Services
             return await q.FirstOrDefaultAsync();
         }
 
+        public Task<int> CountUsersAsync()
+            => _repo.AsNoTracking().CountAsync();
+
         public async Task<bool> SetRoleAsync(int id, string role)
         {
             role = (role ?? string.Empty).Trim();

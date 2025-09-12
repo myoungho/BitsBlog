@@ -24,10 +24,17 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
 
         private HttpClient Api() => _clientFactory.CreateClient("api");
 
-        public async Task<IActionResult> Index()
+        public record Paged<T>(IReadOnlyList<T> Items, int Page, int PageSize, int Total);
+
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 10)
         {
-            var posts = await Api().GetFromJsonAsync<IEnumerable<PostVm>>("posts");
-            return View(posts ?? Enumerable.Empty<PostVm>());
+            if (page < 1) page = 1; if (pageSize < 1) pageSize = 10; if (pageSize > 100) pageSize = 100;
+            var res = await Api().GetAsync($"posts?page={page}&pageSize={pageSize}");
+            res.EnsureSuccessStatusCode();
+            var items = await res.Content.ReadFromJsonAsync<IReadOnlyList<PostVm>>() ?? Array.Empty<PostVm>();
+            int total = 0; if (res.Headers.TryGetValues("X-Total-Count", out var vals)) int.TryParse(vals.FirstOrDefault(), out total);
+            var vm = new Paged<PostVm>(items, page, pageSize, total);
+            return View(vm);
         }
 
         [HttpPost]
@@ -40,4 +47,3 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
         }
     }
 }
-
