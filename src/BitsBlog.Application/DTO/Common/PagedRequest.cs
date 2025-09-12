@@ -1,4 +1,4 @@
-namespace BitsBlog.Application.DTOs.Common;
+namespace BitsBlog.Application.DTO.Common;
 
 public class PagedRequest
 {

@@ -2,6 +2,7 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using BitsBlog.Application.DTO;
 
 namespace BitsBlog.Web.Controllers
 {
@@ -45,7 +46,7 @@ namespace BitsBlog.Web.Controllers
         public async Task<IActionResult> Login(string email, string password, string? returnUrl = null)
         {
             var client = Api();
-            var res = await client.PostAsJsonAsync("auth/login", new BitsBlog.Application.DTOs.LoginDto { Email = email, Password = password });
+            var res = await client.PostAsJsonAsync("auth/login", new LoginDto { Email = email, Password = password });
             if (!res.IsSuccessStatusCode)
             {
                 ModelState.AddModelError(string.Empty, "Invalid email or password.");
@@ -79,7 +80,7 @@ namespace BitsBlog.Web.Controllers
         public async Task<IActionResult> Register(string email, string password, string displayName)
         {
             var client = Api();
-            var res = await client.PostAsJsonAsync("auth/register", new BitsBlog.Application.DTOs.RegisterDto { Email = email, Password = password, DisplayName = displayName });
+            var res = await client.PostAsJsonAsync("auth/register", new RegisterDto { Email = email, Password = password, DisplayName = displayName });
             if (!res.IsSuccessStatusCode)
             {
                 ModelState.AddModelError(string.Empty, "Registration failed (email might be taken).");
@@ -132,7 +133,7 @@ namespace BitsBlog.Web.Controllers
         public async Task<IActionResult> Profile(string displayName)
         {
             var client = Api();
-            var res = await client.PutAsJsonAsync("auth/profile", new BitsBlog.Application.DTOs.UpdateProfileDto { DisplayName = displayName });
+            var res = await client.PutAsJsonAsync("auth/profile", new UpdateProfileDto { DisplayName = displayName });
             if (!res.IsSuccessStatusCode)
             {
                 TempData["Error"] = "프로필 저장 실패";
@@ -153,7 +154,7 @@ namespace BitsBlog.Web.Controllers
         public async Task<IActionResult> ChangePassword(string currentPassword, string newPassword)
         {
             var client = Api();
-            var res = await client.PutAsJsonAsync("auth/password", new BitsBlog.Application.DTOs.ChangePasswordDto { CurrentPassword = currentPassword, NewPassword = newPassword });
+            var res = await client.PutAsJsonAsync("auth/password", new ChangePasswordDto { CurrentPassword = currentPassword, NewPassword = newPassword });
             if (res.StatusCode == System.Net.HttpStatusCode.Unauthorized)
             {
                 TempData["Error"] = "현재 비밀번호가 올바르지 않습니다.";

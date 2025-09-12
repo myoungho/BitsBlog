@@ -1,4 +1,4 @@
-﻿using BitsBlog.Application.Interfaces;
+using BitsBlog.Application.Interfaces;
 using BitsBlog.Application.Services;
 using BitsBlog.Infrastructure;
 using BitsBlog.Infrastructure.Repositories;
@@ -37,7 +37,7 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
-builder.Services.AddScoped<BitsBlog.Application.Services.IAdminMaintenanceService, BitsBlog.Application.Services.AdminMaintenanceService>();
+builder.Services.AddScoped<IAdminMaintenanceService, AdminMaintenanceService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -121,6 +121,5 @@ static async Task SeedAdminAsync(ICustomerService customers, IConfiguration conf
     var displayName = config["AdminSeed:DisplayName"] ?? "Admin";
     if (string.IsNullOrWhiteSpace(adminEmail) || string.IsNullOrWhiteSpace(adminPassword)) return;
 
-    await customers.EnsureAdminAsync(new BitsBlog.Application.DTOs.AdminSeedDto { Email = adminEmail, Password = adminPassword!, DisplayName = displayName });
+    await customers.EnsureAdminAsync(new BitsBlog.Application.DTO.AdminSeedDto { Email = adminEmail, Password = adminPassword!, DisplayName = displayName });
 }
-

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace BitsBlog.Application.DTOs.Common;
+namespace BitsBlog.Application.DTO.Common;
 
 public record class PagedResult<T>
 {

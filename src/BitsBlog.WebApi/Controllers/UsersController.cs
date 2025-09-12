@@ -1,7 +1,8 @@
 using System.ComponentModel.DataAnnotations;
-using BitsBlog.Application.Services;
+using BitsBlog.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using BitsBlog.Application.DTO;
 
 namespace BitsBlog.WebApi.Controllers
 {
@@ -20,8 +21,8 @@ namespace BitsBlog.WebApi.Controllers
 
         /// <summary>사용자 목록(관리자)</summary>
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<BitsBlog.Application.DTOs.UserDto>), 200)]
-        public async Task<IActionResult> Get([FromQuery] BitsBlog.Application.DTOs.UserQueryDto query)
+        [ProducesResponseType(typeof(IEnumerable<UserDto>), 200)]
+        public async Task<IActionResult> Get([FromQuery] UserQueryDto query)
         {
             if (query.Page < 1) query.Page = 1;
             if (query.PageSize < 1) query.PageSize = 10;
@@ -45,7 +46,7 @@ namespace BitsBlog.WebApi.Controllers
         [Consumes("application/json")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> SetRole(int id, [FromBody] BitsBlog.Application.DTOs.SetUserRoleDto req)
+        public async Task<IActionResult> SetRole(int id, [FromBody] SetUserRoleDto req)
         {
             if (string.IsNullOrWhiteSpace(req.Role)) return BadRequest();
             var ok = await _customers.SetRoleAsync(id, req.Role, HttpContext.RequestAborted);

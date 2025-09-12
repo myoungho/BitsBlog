@@ -1,4 +1,4 @@
-@model BitsBlog.Web.Models.PagedResult<BitsBlog.Application.DTOs.PostDto>
+@model BitsBlog.Web.Models.PagedResult<PostDto>
 @{
     ViewData["Title"] = "Posts";
     var totalPages = (int)Math.Ceiling((double)Model.Total / Math.Max(1, Model.PageSize));

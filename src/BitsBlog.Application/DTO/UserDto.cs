@@ -1,6 +1,6 @@
 using System;
 
-namespace BitsBlog.Application.DTOs
+namespace BitsBlog.Application.DTO
 {
     public class UserDto : IEquatable<UserDto>
     {

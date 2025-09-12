@@ -1,4 +1,4 @@
-﻿using BitsBlog.Application.DTOs.Common;
+﻿using BitsBlog.Application.DTO.Common;
 using BitsBlog.Application.Interfaces;
 using System;
 using System.Collections.Generic;

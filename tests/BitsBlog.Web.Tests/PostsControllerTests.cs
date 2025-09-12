@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using BitsBlog.Application.DTOs;
+using BitsBlog.Application.DTO;
 using BitsBlog.Web.Controllers;
 using BitsBlog.Web.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -37,8 +37,8 @@ namespace BitsBlog.Web.Tests
             var result = await controller.Index();
 
             var view = Assert.IsType<ViewResult>(result);
-            var model = Assert.IsAssignableFrom<IEnumerable<PostDto>>(view.Model);
-            Assert.Equal(posts, model);
+            var model = Assert.IsType<PagedResult<PostDto>>(view.Model);
+            Assert.Equal(posts, model.Items);
         }
 
         [Fact]

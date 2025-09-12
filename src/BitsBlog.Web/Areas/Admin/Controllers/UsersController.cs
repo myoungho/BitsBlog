@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using BitsBlog.Application.DTO;
 
 namespace BitsBlog.Web.Areas.Admin.Controllers
 {
@@ -39,7 +40,7 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
         public async Task<IActionResult> Promote(int id)
         {
             var client = Api();
-            var res = await client.PutAsJsonAsync($"users/{id}/role", new BitsBlog.Application.DTOs.SetUserRoleDto { Role = "Admin" });
+            var res = await client.PutAsJsonAsync($"users/{id}/role", new SetUserRoleDto { Role = "Admin" });
             if (!res.IsSuccessStatusCode) TempData["Error"] = "역할 변경 실패";
             return RedirectToAction(nameof(Index));
         }
@@ -49,7 +50,7 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
         public async Task<IActionResult> Demote(int id)
         {
             var client = Api();
-            var res = await client.PutAsJsonAsync($"users/{id}/role", new BitsBlog.Application.DTOs.SetUserRoleDto { Role = "User" });
+            var res = await client.PutAsJsonAsync($"users/{id}/role", new SetUserRoleDto { Role = "User" });
             if (!res.IsSuccessStatusCode) TempData["Error"] = "역할 변경 실패";
             return RedirectToAction(nameof(Index));
         }

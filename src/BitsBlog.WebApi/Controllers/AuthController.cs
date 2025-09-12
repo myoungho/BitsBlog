@@ -1,4 +1,4 @@
-using BitsBlog.Application.Services;
+using BitsBlog.Application.Interfaces;
 using BitsBlog.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using BitsBlog.Application.DTO;
 
 namespace BitsBlog.WebApi.Controllers
 {
@@ -25,7 +26,7 @@ namespace BitsBlog.WebApi.Controllers
         [HttpPost("register")]
         [Consumes("application/json")]
         [ProducesResponseType(typeof(AuthResponse), 200)]
-        public async Task<ActionResult<AuthResponse>> Register([FromBody] BitsBlog.Application.DTOs.RegisterDto request)
+        public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterDto request)
         {
             if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
                 return BadRequest("Email and password are required");
@@ -47,7 +48,7 @@ namespace BitsBlog.WebApi.Controllers
         [Consumes("application/json")]
         [ProducesResponseType(typeof(AuthResponse), 200)]
         [ProducesResponseType(401)]
-        public async Task<ActionResult<AuthResponse>> Login([FromBody] BitsBlog.Application.DTOs.LoginDto request)
+        public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginDto request)
         {
             var result = await _customers.LoginAsync(request, HttpContext.RequestAborted);
             if (!result.Ok || result.Data is null) return Unauthorized();
@@ -63,7 +64,7 @@ namespace BitsBlog.WebApi.Controllers
         public async Task<ActionResult<object>> Me()
         {
             var email = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-            var profile = await _customers.GetProfileAsync(new BitsBlog.Application.DTOs.ProfileQueryDto { LoginId = email }, HttpContext.RequestAborted);
+            var profile = await _customers.GetProfileAsync(new ProfileQueryDto { LoginId = email }, HttpContext.RequestAborted);
             if (profile is null) return NotFound();
             return Ok(new { profile.LoginId, profile.DisplayName, profile.Role, profile.Created });
         }
@@ -100,13 +101,13 @@ namespace BitsBlog.WebApi.Controllers
         [Consumes("application/json")]
         [ProducesResponseType(typeof(AuthResponse), 200)]
         [ProducesResponseType(400)]
-        public async Task<ActionResult<AuthResponse>> UpdateProfile([FromBody] BitsBlog.Application.DTOs.UpdateProfileDto request)
+        public async Task<ActionResult<AuthResponse>> UpdateProfile([FromBody] UpdateProfileDto request)
         {
             var loginId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
             request.LoginId = loginId;
             var up = await _customers.UpdateDisplayNameAsync(request, HttpContext.RequestAborted);
             if (!up.Ok) return BadRequest(up.Error ?? "Update failed");
-            var me = await _customers.GetProfileAsync(new BitsBlog.Application.DTOs.ProfileQueryDto { LoginId = loginId }, HttpContext.RequestAborted);
+            var me = await _customers.GetProfileAsync(new ProfileQueryDto { LoginId = loginId }, HttpContext.RequestAborted);
             if (me is null) return Unauthorized();
             var token = GenerateJwt(new Customer
             {
@@ -124,7 +125,7 @@ namespace BitsBlog.WebApi.Controllers
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
         [ProducesResponseType(401)]
-        public async Task<IActionResult> ChangePassword([FromBody] BitsBlog.Application.DTOs.ChangePasswordDto request)
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto request)
         {
             var loginId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
             request.LoginId = loginId;

@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using BitsBlog.Application.DTOs;
+using BitsBlog.Application.DTO;
 
 namespace BitsBlog.Web.Models
 {

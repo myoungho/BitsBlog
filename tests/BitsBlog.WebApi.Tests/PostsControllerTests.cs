@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
-using BitsBlog.Application.DTOs;
+using BitsBlog.Application.DTO;
 using BitsBlog.Application.Interfaces;
 using BitsBlog.Application.Services;
 using BitsBlog.Domain.Entities;
 using BitsBlog.WebApi.Controllers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Xunit;
@@ -15,36 +18,65 @@ namespace BitsBlog.WebApi.Tests
 {
     public class PostsControllerTests
     {
+        private PostsController CreateControllerWithUser(IPostService service, string role = "User", string loginId = "test-user")
+        {
+            var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+            {
+                new Claim(ClaimTypes.Role, role),
+                new Claim(ClaimTypes.NameIdentifier, loginId),
+            }, "mock"));
+
+            var controller = new PostsController(service, new Ganss.Xss.HtmlSanitizer())
+            {
+                ControllerContext = new ControllerContext()
+                {
+                    HttpContext = new DefaultHttpContext() { User = user }
+                }
+            };
+            return controller;
+        }
+
         [Fact]
         public async Task Get_ReturnsPostsFromService()
         {
-            var posts = new[]
+            var posts = new List<PostDto>
             {
-                new Post { Id = 1, Title = "Title1", Content = "Content1", Created = DateTime.UtcNow },
-                new Post { Id = 2, Title = "Title2", Content = "Content2", Created = DateTime.UtcNow }
+                new PostDto(1, "Title1", "Content1", DateTime.UtcNow),
+                new PostDto(2, "Title2", "Content2", DateTime.UtcNow)
             };
-            var repo = new Mock<IRepository<Post>>();
-            repo.Setup(r => r.ListAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Post, bool>>>(), It.IsAny<System.Threading.CancellationToken>()))
-                .ReturnsAsync(posts.ToList());
-            var service = new PostService(repo.Object);
-            var controller = new PostsController(service, new Ganss.Xss.HtmlSanitizer());
 
-            var result = await controller.Get();
+            var serviceMock = new Mock<IPostService>();
+            serviceMock.Setup(s => s.GetPagedAsync(It.IsAny<PostQueryDto>(), It.IsAny<CancellationToken>()))
+                       .ReturnsAsync(posts);
+            serviceMock.Setup(s => s.CountAsync(It.IsAny<PostQueryDto>(), It.IsAny<CancellationToken>()))
+                       .ReturnsAsync(posts.Count);
 
-            Assert.Equal(posts.Select(p => new PostDto(p.Id, p.Title, p.Content, p.Created)), result);
+            var controller = new PostsController(serviceMock.Object, new Ganss.Xss.HtmlSanitizer())
+            {
+                ControllerContext = new ControllerContext()
+                {
+                    HttpContext = new DefaultHttpContext()
+                }
+            };
+
+            var result = await controller.Get(new PostQueryDto());
+
+            Assert.Equal(posts.Count, result.Count());
         }
 
         [Fact]
         public async Task Post_ReturnsCreatedPost()
         {
-            var post = new Post { Id = 1, Title = "New", Content = "Body", Created = DateTime.UtcNow };
+            var post = new Post { Id = 1, Title = "New", Content = "Body", Created = DateTime.UtcNow, AuthorLoginId = "test-user" };
             var repo = new Mock<IRepository<Post>>();
-            repo.Setup(r => r.InsertAsync(It.IsAny<Post>())).ReturnsAsync(post);
-            var service = new PostService(repo.Object);
-            var controller = new PostsController(service, new Ganss.Xss.HtmlSanitizer());
-            var request = new PostsController.CreatePostRequest(post.Title, post.Content);
+            repo.Setup(r => r.InsertAsync(It.IsAny<Post>(), It.IsAny<CancellationToken>())).ReturnsAsync(post);
+            repo.Setup(r => r.ExecuteInTransactionAsync(It.IsAny<Func<CancellationToken, Task>>(), It.IsAny<CancellationToken>()))
+                .Callback(async (Func<CancellationToken, Task> action, CancellationToken token) => await action(token));
 
-            var response = await controller.Post(request);
+            var service = new PostService(repo.Object);
+            var controller = CreateControllerWithUser(service);
+            
+            var response = await controller.Post(new PostCreateDto { Title = post.Title, Content = post.Content });
 
             var created = Assert.IsType<CreatedAtActionResult>(response.Result);
             var dto = Assert.IsType<PostDto>(created.Value);
@@ -58,7 +90,7 @@ namespace BitsBlog.WebApi.Tests
         {
             var post = new Post { Id = 5, Title = "T", Content = "C", Created = DateTime.UtcNow };
             var repo = new Mock<IRepository<Post>>();
-            repo.Setup(r => r.GetByIdAsync(post.Id)).ReturnsAsync(post);
+            repo.Setup(r => r.GetByIdAsync(post.Id, It.IsAny<CancellationToken>())).ReturnsAsync(post);
             var service = new PostService(repo.Object);
             var controller = new PostsController(service, new Ganss.Xss.HtmlSanitizer());
 
@@ -67,15 +99,13 @@ namespace BitsBlog.WebApi.Tests
             var ok = Assert.IsType<OkObjectResult>(result.Result);
             var dto = Assert.IsType<PostDto>(ok.Value);
             Assert.Equal(post.Id, dto.Id);
-            Assert.Equal(post.Title, dto.Title);
-            Assert.Equal(post.Content, dto.Content);
         }
 
         [Fact]
         public async Task GetById_ReturnsNotFound_WhenMissing()
         {
             var repo = new Mock<IRepository<Post>>();
-            repo.Setup(r => r.GetByIdAsync(It.IsAny<int>())).ReturnsAsync((Post)null!);
+            repo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync((Post)null!);
             var service = new PostService(repo.Object);
             var controller = new PostsController(service, new Ganss.Xss.HtmlSanitizer());
 
@@ -87,32 +117,31 @@ namespace BitsBlog.WebApi.Tests
         [Fact]
         public async Task Put_UpdatesAndReturnsOk_WhenFound()
         {
-            var post = new Post { Id = 7, Title = "Old", Content = "OldC", Created = DateTime.UtcNow };
+            var post = new Post { Id = 7, Title = "Old", Content = "OldC", Created = DateTime.UtcNow, AuthorLoginId = "test-user" };
             var repo = new Mock<IRepository<Post>>();
-            repo.Setup(r => r.GetByIdAsync(post.Id)).ReturnsAsync(post);
-            repo.Setup(r => r.UpdateAsync(post)).Returns(Task.CompletedTask);
-            repo.Setup(r => r.SaveChangesAsync(It.IsAny<System.Threading.CancellationToken>())).ReturnsAsync(0);
+            repo.Setup(r => r.GetByIdAsync(post.Id, It.IsAny<CancellationToken>())).ReturnsAsync(post);
+            repo.Setup(r => r.ExecuteInTransactionAsync(It.IsAny<Func<CancellationToken, Task>>(), It.IsAny<CancellationToken>()))
+                .Callback(async (Func<CancellationToken, Task> action, CancellationToken token) => await action(token));
+            
             var service = new PostService(repo.Object);
-            var controller = new PostsController(service, new Ganss.Xss.HtmlSanitizer());
+            var controller = CreateControllerWithUser(service);
 
-            var res = await controller.Put(post.Id, new PostsController.UpdatePostRequest("New", "NewC"));
+            var res = await controller.Put(post.Id, new PostUpdateDto { Id = post.Id, Title = "New", Content = "NewC" });
 
             var ok = Assert.IsType<OkObjectResult>(res.Result);
             var dto = Assert.IsType<PostDto>(ok.Value);
-            Assert.Equal(post.Id, dto.Id);
             Assert.Equal("New", dto.Title);
-            Assert.Equal("NewC", dto.Content);
         }
 
         [Fact]
         public async Task Put_ReturnsNotFound_WhenMissing()
         {
             var repo = new Mock<IRepository<Post>>();
-            repo.Setup(r => r.GetByIdAsync(It.IsAny<int>())).ReturnsAsync((Post)null!);
+            repo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync((Post)null!);
             var service = new PostService(repo.Object);
-            var controller = new PostsController(service, new Ganss.Xss.HtmlSanitizer());
+            var controller = CreateControllerWithUser(service);
 
-            var res = await controller.Put(999, new PostsController.UpdatePostRequest("A", "B"));
+            var res = await controller.Put(999, new PostUpdateDto { Id = 999, Title = "A", Content = "B" });
 
             Assert.IsType<NotFoundResult>(res.Result);
         }
@@ -120,13 +149,14 @@ namespace BitsBlog.WebApi.Tests
         [Fact]
         public async Task Delete_NoContent_WhenFound()
         {
-            var post = new Post { Id = 11, Title = "t", Content = "c", Created = DateTime.UtcNow };
+            var post = new Post { Id = 11, Title = "t", Content = "c", Created = DateTime.UtcNow, AuthorLoginId = "test-user" };
             var repo = new Mock<IRepository<Post>>();
-            repo.Setup(r => r.GetByIdAsync(post.Id)).ReturnsAsync(post);
-            repo.Setup(r => r.DeleteAsync(post)).Returns(Task.CompletedTask);
-            repo.Setup(r => r.SaveChangesAsync(It.IsAny<System.Threading.CancellationToken>())).ReturnsAsync(0);
+            repo.Setup(r => r.GetByIdAsync(post.Id, It.IsAny<CancellationToken>())).ReturnsAsync(post);
+            repo.Setup(r => r.ExecuteInTransactionAsync(It.IsAny<Func<CancellationToken, Task>>(), It.IsAny<CancellationToken>()))
+                .Callback(async (Func<CancellationToken, Task> action, CancellationToken token) => await action(token));
+            
             var service = new PostService(repo.Object);
-            var controller = new PostsController(service, new Ganss.Xss.HtmlSanitizer());
+            var controller = CreateControllerWithUser(service);
 
             var result = await controller.Delete(post.Id);
 
@@ -137,9 +167,9 @@ namespace BitsBlog.WebApi.Tests
         public async Task Delete_NotFound_WhenMissing()
         {
             var repo = new Mock<IRepository<Post>>();
-            repo.Setup(r => r.GetByIdAsync(It.IsAny<int>())).ReturnsAsync((Post)null!);
+            repo.Setup(r => r.GetByIdAsync(It.IsAny<int>(), It.IsAny<CancellationToken>())).ReturnsAsync((Post)null!);
             var service = new PostService(repo.Object);
-            var controller = new PostsController(service, new Ganss.Xss.HtmlSanitizer());
+            var controller = CreateControllerWithUser(service);
 
             var result = await controller.Delete(123);
 

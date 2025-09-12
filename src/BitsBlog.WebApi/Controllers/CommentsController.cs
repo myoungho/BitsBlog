@@ -1,8 +1,10 @@
 using System.Threading.Tasks;
-using BitsBlog.Application.Services;
+using BitsBlog.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using BitsBlog.Application.DTO;
+using System.Collections.Generic;
 
 namespace BitsBlog.WebApi.Controllers
 {
@@ -21,8 +23,8 @@ namespace BitsBlog.WebApi.Controllers
         /// <summary>코멘트 목록 조회</summary>
         [AllowAnonymous]
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<BitsBlog.Application.DTOs.CommentDto>), 200)]
-        public async Task<IActionResult> Get(int postId, [FromQuery] BitsBlog.Application.DTOs.CommentQueryDto query)
+        [ProducesResponseType(typeof(IEnumerable<CommentDto>), 200)]
+        public async Task<IActionResult> Get(int postId, [FromQuery] CommentQueryDto query)
         {
             if (postId <= 0) return BadRequest();
             query.PostId = postId;
@@ -40,15 +42,15 @@ namespace BitsBlog.WebApi.Controllers
         [Authorize(Roles = "User,Admin")]
         [HttpPost]
         [Consumes("application/json")]
-        [ProducesResponseType(typeof(BitsBlog.Application.DTOs.CommentDto), 201)]
-        public async Task<IActionResult> Post(int postId, [FromBody] BitsBlog.Application.DTOs.CommentCreateDto body)
+        [ProducesResponseType(typeof(CommentDto), 201)]
+        public async Task<IActionResult> Post(int postId, [FromBody] CommentCreateDto body)
         {
             var content = _sanitizer.Sanitize(body.Content ?? string.Empty);
             var loginId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
             var displayName = User.FindFirstValue(ClaimTypes.Name) ?? loginId;
             int? customerId = null; var cid = User.FindFirstValue("cid");
             if (int.TryParse(cid, out var parsed)) customerId = parsed;
-            var dto = new BitsBlog.Application.DTOs.CommentCreateDto { PostId = postId, Content = content, AuthorLoginId = loginId, AuthorDisplayName = displayName, CustomerId = customerId };
+            var dto = new CommentCreateDto { PostId = postId, Content = content, AuthorLoginId = loginId, AuthorDisplayName = displayName, CustomerId = customerId };
             var created = await _service.CreateAsync(dto);
             return Created($"/api/posts/{postId}/comments/{created.Id}", created);
         }
@@ -57,9 +59,9 @@ namespace BitsBlog.WebApi.Controllers
         [Authorize(Roles = "User,Admin")]
         [HttpPut("{commentId}")]
         [Consumes("application/json")]
-        [ProducesResponseType(typeof(BitsBlog.Application.DTOs.CommentDto), 200)]
+        [ProducesResponseType(typeof(CommentDto), 200)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> Put(int postId, int commentId, [FromBody] BitsBlog.Application.DTOs.CommentUpdateDto body)
+        public async Task<IActionResult> Put(int postId, int commentId, [FromBody] CommentUpdateDto body)
         {
             var existing = await _service.GetByIdAsync(commentId, HttpContext.RequestAborted);
             if (existing is null || existing.PostId != postId) return NotFound();
@@ -68,7 +70,7 @@ namespace BitsBlog.WebApi.Controllers
             if (!isAdmin && !string.Equals(existing.AuthorLoginId, loginId, StringComparison.OrdinalIgnoreCase))
                 return Forbid();
             var content = _sanitizer.Sanitize(body.Content ?? string.Empty);
-            var updated = await _service.UpdateAsync(new BitsBlog.Application.DTOs.CommentUpdateDto { CommentId = commentId, Content = content }, HttpContext.RequestAborted);
+            var updated = await _service.UpdateAsync(new CommentUpdateDto { CommentId = commentId, Content = content }, HttpContext.RequestAborted);
             return Ok(updated);
         }
 

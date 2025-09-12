@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using BitsBlog.Application.DTOs;
+using BitsBlog.Application.DTO;
 using BitsBlog.Application.Interfaces;
 using BitsBlog.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -26,7 +26,7 @@ namespace BitsBlog.Application.Services
             });
         }
 
-        public async Task<IReadOnlyList<PostDto>> GetPagedAsync(BitsBlog.Application.DTOs.PostQueryDto queryDto, System.Threading.CancellationToken ct = default)
+        public async Task<IReadOnlyList<PostDto>> GetPagedAsync(BitsBlog.Application.DTO.PostQueryDto queryDto, System.Threading.CancellationToken ct = default)
         {
             var skip = (queryDto.Page - 1) * queryDto.PageSize;
             if (skip < 0) skip = 0; var take = queryDto.PageSize <= 0 ? 10 : queryDto.PageSize;
@@ -53,7 +53,7 @@ namespace BitsBlog.Application.Services
             return await sel.ToListAsync(ct);
         }
 
-        public Task<int> CountAsync(BitsBlog.Application.DTOs.PostQueryDto queryDto, System.Threading.CancellationToken ct = default)
+        public Task<int> CountAsync(BitsBlog.Application.DTO.PostQueryDto queryDto, System.Threading.CancellationToken ct = default)
         {
             var query = _repository.AsNoTracking();
             if (!string.IsNullOrWhiteSpace(queryDto.Q))
@@ -64,7 +64,7 @@ namespace BitsBlog.Application.Services
             return query.CountAsync(ct);
         }
 
-        public async Task<PostDto> CreateAsync(BitsBlog.Application.DTOs.PostCreateDto dto, System.Threading.CancellationToken ct = default)
+        public async Task<PostDto> CreateAsync(BitsBlog.Application.DTO.PostCreateDto dto, System.Threading.CancellationToken ct = default)
         {
             Post post = null!;
             await _repository.ExecuteInTransactionAsync(async _ =>
@@ -91,7 +91,7 @@ namespace BitsBlog.Application.Services
             };
         }
 
-        public async Task<PostDto?> UpdateAsync(BitsBlog.Application.DTOs.PostUpdateDto dto, System.Threading.CancellationToken ct = default)
+        public async Task<PostDto?> UpdateAsync(BitsBlog.Application.DTO.PostUpdateDto dto, System.Threading.CancellationToken ct = default)
         {
             var post = await _repository.GetByIdAsync(dto.Id, ct);
             if (post is null) return null;

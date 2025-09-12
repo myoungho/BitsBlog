@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BitsBlog.Application.Services
+namespace BitsBlog.Application.Interfaces
 {
     public interface IAdminMaintenanceService
     {

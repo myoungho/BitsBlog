@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using BitsBlog.Application.DTOs;
+using BitsBlog.Application.DTO;
 using BitsBlog.Application.Interfaces;
 using BitsBlog.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -29,7 +29,7 @@ namespace BitsBlog.Application.Services
             });
         }
 
-        public async Task<IReadOnlyList<CommentDto>> GetPagedAsync(BitsBlog.Application.DTOs.CommentQueryDto queryDto, System.Threading.CancellationToken ct = default)
+        public async Task<IReadOnlyList<CommentDto>> GetPagedAsync(BitsBlog.Application.DTO.CommentQueryDto queryDto, System.Threading.CancellationToken ct = default)
         {
             var skip = (queryDto.Page - 1) * queryDto.PageSize; if (skip < 0) skip = 0;
             var take = queryDto.PageSize <= 0 ? 10 : queryDto.PageSize;
@@ -56,7 +56,7 @@ namespace BitsBlog.Application.Services
             return await sel.ToListAsync(ct);
         }
 
-        public Task<int> CountAsync(BitsBlog.Application.DTOs.CommentQueryDto queryDto, System.Threading.CancellationToken ct = default)
+        public Task<int> CountAsync(BitsBlog.Application.DTO.CommentQueryDto queryDto, System.Threading.CancellationToken ct = default)
         {
             var query = _repository.AsNoTracking().Where(c => c.PostId == queryDto.PostId);
             if (!string.IsNullOrWhiteSpace(queryDto.Q))
@@ -67,7 +67,7 @@ namespace BitsBlog.Application.Services
             return query.CountAsync(ct);
         }
 
-        public async Task<CommentDto> CreateAsync(BitsBlog.Application.DTOs.CommentCreateDto dto, System.Threading.CancellationToken ct = default)
+        public async Task<CommentDto> CreateAsync(BitsBlog.Application.DTO.CommentCreateDto dto, System.Threading.CancellationToken ct = default)
         {
             var comment = new Comment { PostId = dto.PostId, Content = dto.Content, AuthorLoginId = dto.AuthorLoginId, AuthorDisplayName = dto.AuthorDisplayName, CustomerId = dto.CustomerId };
             Comment created = null!;
@@ -95,7 +95,7 @@ namespace BitsBlog.Application.Services
             };
         }
 
-        public async Task<CommentDto?> UpdateAsync(BitsBlog.Application.DTOs.CommentUpdateDto dto, System.Threading.CancellationToken ct = default)
+        public async Task<CommentDto?> UpdateAsync(BitsBlog.Application.DTO.CommentUpdateDto dto, System.Threading.CancellationToken ct = default)
         {
             var c = await _repository.GetByIdAsync(dto.CommentId, ct);
             if (c is null) return null;

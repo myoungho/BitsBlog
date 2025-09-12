@@ -17,13 +17,13 @@ namespace BitsBlog.Application.Services
             _repo = repo;
         }
 
-        public async Task<BitsBlog.Application.DTOs.ResultDto> EnsureAdminAsync(BitsBlog.Application.DTOs.AdminSeedDto dto, System.Threading.CancellationToken ct = default)
+        public async Task<BitsBlog.Application.DTO.ResultDto> EnsureAdminAsync(BitsBlog.Application.DTO.AdminSeedDto dto, System.Threading.CancellationToken ct = default)
         {
             if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
-                return BitsBlog.Application.DTOs.ResultDto.Fail("Email/password required");
+                return BitsBlog.Application.DTO.ResultDto.Fail("Email/password required");
             var loginId = NormalizeEmail(dto.Email);
             var exists = await _repo.AsNoTracking().AnyAsync(c => c.LoginId == loginId, ct);
-            if (exists) return BitsBlog.Application.DTOs.ResultDto.Success();
+            if (exists) return BitsBlog.Application.DTO.ResultDto.Success();
 
             var (hash, salt) = HashPassword(dto.Password);
             var admin = new Customer
@@ -39,16 +39,16 @@ namespace BitsBlog.Application.Services
             {
                 await _repo.InsertAsync(admin);
             });
-            return BitsBlog.Application.DTOs.ResultDto.Success();
+            return BitsBlog.Application.DTO.ResultDto.Success();
         }
 
-        public async Task<BitsBlog.Application.DTOs.ResultDto<BitsBlog.Application.DTOs.AuthUserDto>> RegisterAsync(BitsBlog.Application.DTOs.RegisterDto dto, System.Threading.CancellationToken ct = default)
+        public async Task<BitsBlog.Application.DTO.ResultDto<BitsBlog.Application.DTO.AuthUserDto>> RegisterAsync(BitsBlog.Application.DTO.RegisterDto dto, System.Threading.CancellationToken ct = default)
         {
             if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
-                return BitsBlog.Application.DTOs.ResultDto<BitsBlog.Application.DTOs.AuthUserDto>.Fail("Email/password required");
+                return BitsBlog.Application.DTO.ResultDto<BitsBlog.Application.DTO.AuthUserDto>.Fail("Email/password required");
             var loginId = NormalizeEmail(dto.Email);
             var exists = await _repo.AsNoTracking().AnyAsync(c => c.LoginId == loginId, ct);
-            if (exists) return BitsBlog.Application.DTOs.ResultDto<BitsBlog.Application.DTOs.AuthUserDto>.Fail("Email already registered");
+            if (exists) return BitsBlog.Application.DTO.ResultDto<BitsBlog.Application.DTO.AuthUserDto>.Fail("Email already registered");
 
             var (hash, salt) = HashPassword(dto.Password);
             var customer = new Customer
@@ -64,31 +64,31 @@ namespace BitsBlog.Application.Services
             {
                 await _repo.InsertAsync(customer, ct);
             }, ct);
-            var userDto = new BitsBlog.Application.DTOs.AuthUserDto { Id = customer.Id, LoginId = customer.LoginId, DisplayName = customer.DisplayName, Role = customer.Role };
-            return BitsBlog.Application.DTOs.ResultDto<BitsBlog.Application.DTOs.AuthUserDto>.Success(userDto);
+            var userDto = new BitsBlog.Application.DTO.AuthUserDto { Id = customer.Id, LoginId = customer.LoginId, DisplayName = customer.DisplayName, Role = customer.Role };
+            return BitsBlog.Application.DTO.ResultDto<BitsBlog.Application.DTO.AuthUserDto>.Success(userDto);
         }
 
-        public async Task<BitsBlog.Application.DTOs.ResultDto<BitsBlog.Application.DTOs.AuthUserDto>> LoginAsync(BitsBlog.Application.DTOs.LoginDto dto, System.Threading.CancellationToken ct = default)
+        public async Task<BitsBlog.Application.DTO.ResultDto<BitsBlog.Application.DTO.AuthUserDto>> LoginAsync(BitsBlog.Application.DTO.LoginDto dto, System.Threading.CancellationToken ct = default)
         {
             var loginId = NormalizeEmail(dto.Email ?? string.Empty);
             var customer = await _repo.AsNoTracking().FirstOrDefaultAsync(c => c.LoginId == loginId, ct);
-            if (customer is null) return BitsBlog.Application.DTOs.ResultDto<BitsBlog.Application.DTOs.AuthUserDto>.Fail("Invalid credentials");
+            if (customer is null) return BitsBlog.Application.DTO.ResultDto<BitsBlog.Application.DTO.AuthUserDto>.Fail("Invalid credentials");
             if (!VerifyPassword(dto.Password ?? string.Empty, customer.PasswordHash, customer.PasswordSalt))
-                return BitsBlog.Application.DTOs.ResultDto<BitsBlog.Application.DTOs.AuthUserDto>.Fail("Invalid credentials");
-            var userDto2 = new BitsBlog.Application.DTOs.AuthUserDto { Id = customer.Id, LoginId = customer.LoginId, DisplayName = customer.DisplayName, Role = customer.Role };
-            return BitsBlog.Application.DTOs.ResultDto<BitsBlog.Application.DTOs.AuthUserDto>.Success(userDto2);
+                return BitsBlog.Application.DTO.ResultDto<BitsBlog.Application.DTO.AuthUserDto>.Fail("Invalid credentials");
+            var userDto2 = new BitsBlog.Application.DTO.AuthUserDto { Id = customer.Id, LoginId = customer.LoginId, DisplayName = customer.DisplayName, Role = customer.Role };
+            return BitsBlog.Application.DTO.ResultDto<BitsBlog.Application.DTO.AuthUserDto>.Success(userDto2);
         }
 
-        public async Task<BitsBlog.Application.DTOs.ProfileDto?> GetProfileAsync(BitsBlog.Application.DTOs.ProfileQueryDto query, System.Threading.CancellationToken ct = default)
+        public async Task<BitsBlog.Application.DTO.ProfileDto?> GetProfileAsync(BitsBlog.Application.DTO.ProfileQueryDto query, System.Threading.CancellationToken ct = default)
         {
             var id = NormalizeEmail(query.LoginId ?? string.Empty);
             var q = _repo.AsNoTracking().Where(c => c.LoginId == id)
-                .Select(c => new BitsBlog.Application.DTOs.ProfileDto { LoginId = c.LoginId, DisplayName = c.DisplayName, Role = c.Role, Created = c.Created });
+                .Select(c => new BitsBlog.Application.DTO.ProfileDto { LoginId = c.LoginId, DisplayName = c.DisplayName, Role = c.Role, Created = c.Created });
             var r = await q.FirstOrDefaultAsync(ct);
             return r;
         }
 
-        public async Task<IReadOnlyList<BitsBlog.Application.DTOs.UserDto>> ListUsersAsync(BitsBlog.Application.DTOs.UserQueryDto queryParams, System.Threading.CancellationToken ct = default)
+        public async Task<IReadOnlyList<BitsBlog.Application.DTO.UserDto>> ListUsersAsync(BitsBlog.Application.DTO.UserQueryDto queryParams, System.Threading.CancellationToken ct = default)
         {
             var skip = (queryParams.Page - 1) * queryParams.PageSize;
             var take = queryParams.PageSize;
@@ -116,27 +116,27 @@ namespace BitsBlog.Application.Services
             var sel = query
                 .Skip(skip)
                 .Take(take)
-                .Select(c => new BitsBlog.Application.DTOs.UserDto(c.Id, c.LoginId, c.DisplayName, c.Role, c.Created));
+                .Select(c => new BitsBlog.Application.DTO.UserDto(c.Id, c.LoginId, c.DisplayName, c.Role, c.Created));
             return await sel.ToListAsync(ct);
         }
 
-        public async Task<BitsBlog.Application.DTOs.UserDto?> GetUserByIdAsync(int id, System.Threading.CancellationToken ct = default)
+        public async Task<BitsBlog.Application.DTO.UserDto?> GetUserByIdAsync(int id, System.Threading.CancellationToken ct = default)
         {
             var q = _repo.AsNoTracking()
                 .Where(c => c.Id == id)
-                .Select(c => new BitsBlog.Application.DTOs.UserDto(c.Id, c.LoginId, c.DisplayName, c.Role, c.Created));
+                .Select(c => new BitsBlog.Application.DTO.UserDto(c.Id, c.LoginId, c.DisplayName, c.Role, c.Created));
             return await q.FirstOrDefaultAsync(ct);
         }
 
-        public async Task<BitsBlog.Application.DTOs.UserDto?> GetUserByIdAsync(int id)
+        public async Task<BitsBlog.Application.DTO.UserDto?> GetUserByIdAsync(int id)
         {
             var q = _repo.AsNoTracking()
                 .Where(c => c.Id == id)
-                .Select(c => new BitsBlog.Application.DTOs.UserDto(c.Id, c.LoginId, c.DisplayName, c.Role, c.Created));
+                .Select(c => new BitsBlog.Application.DTO.UserDto(c.Id, c.LoginId, c.DisplayName, c.Role, c.Created));
             return await q.FirstOrDefaultAsync();
         }
 
-        public Task<int> CountUsersAsync(BitsBlog.Application.DTOs.UserQueryDto queryParams, System.Threading.CancellationToken ct = default)
+        public Task<int> CountUsersAsync(BitsBlog.Application.DTO.UserQueryDto queryParams, System.Threading.CancellationToken ct = default)
         {
             var query = _repo.AsNoTracking();
             if (!string.IsNullOrWhiteSpace(queryParams.Q))
@@ -196,30 +196,30 @@ namespace BitsBlog.Application.Services
             catch { return false; }
         }
 
-        public async Task<BitsBlog.Application.DTOs.ResultDto> UpdateDisplayNameAsync(BitsBlog.Application.DTOs.UpdateProfileDto dto, System.Threading.CancellationToken ct = default)
+        public async Task<BitsBlog.Application.DTO.ResultDto> UpdateDisplayNameAsync(BitsBlog.Application.DTO.UpdateProfileDto dto, System.Threading.CancellationToken ct = default)
         {
-            if (string.IsNullOrWhiteSpace(dto.DisplayName)) return BitsBlog.Application.DTOs.ResultDto.Fail("DisplayName required");
-            if (dto.DisplayName.Length > 100) return BitsBlog.Application.DTOs.ResultDto.Fail("DisplayName too long");
+            if (string.IsNullOrWhiteSpace(dto.DisplayName)) return BitsBlog.Application.DTO.ResultDto.Fail("DisplayName required");
+            if (dto.DisplayName.Length > 100) return BitsBlog.Application.DTO.ResultDto.Fail("DisplayName too long");
             var id = NormalizeEmail(dto.LoginId ?? string.Empty);
             var entity = await _repo.AsTracking().FirstOrDefaultAsync(c => c.LoginId == id, ct);
-            if (entity is null) return BitsBlog.Application.DTOs.ResultDto.Fail("Not found");
+            if (entity is null) return BitsBlog.Application.DTO.ResultDto.Fail("Not found");
             entity.DisplayName = dto.DisplayName.Trim();
             await _repo.ExecuteInTransactionAsync(async _ =>
             {
                 await _repo.UpdateAsync(entity, ct);
             }, ct);
-            return BitsBlog.Application.DTOs.ResultDto.Success();
+            return BitsBlog.Application.DTO.ResultDto.Success();
         }
 
-        public async Task<BitsBlog.Application.DTOs.ResultDto> ChangePasswordAsync(BitsBlog.Application.DTOs.ChangePasswordDto dto, System.Threading.CancellationToken ct = default)
+        public async Task<BitsBlog.Application.DTO.ResultDto> ChangePasswordAsync(BitsBlog.Application.DTO.ChangePasswordDto dto, System.Threading.CancellationToken ct = default)
         {
             if (string.IsNullOrWhiteSpace(dto.NewPassword) || dto.NewPassword.Length < 6)
-                return BitsBlog.Application.DTOs.ResultDto.Fail("New password too short");
+                return BitsBlog.Application.DTO.ResultDto.Fail("New password too short");
             var id = NormalizeEmail(dto.LoginId ?? string.Empty);
             var entity = await _repo.AsTracking().FirstOrDefaultAsync(c => c.LoginId == id, ct);
-            if (entity is null) return BitsBlog.Application.DTOs.ResultDto.Fail("Not found");
+            if (entity is null) return BitsBlog.Application.DTO.ResultDto.Fail("Not found");
             if (!VerifyPassword(dto.CurrentPassword ?? string.Empty, entity.PasswordHash, entity.PasswordSalt))
-                return BitsBlog.Application.DTOs.ResultDto.Fail("Invalid current password");
+                return BitsBlog.Application.DTO.ResultDto.Fail("Invalid current password");
             var (hash, salt) = HashPassword(dto.NewPassword);
             entity.PasswordHash = hash;
             entity.PasswordSalt = salt;
@@ -227,7 +227,7 @@ namespace BitsBlog.Application.Services
             {
                 await _repo.UpdateAsync(entity, ct);
             }, ct);
-            return BitsBlog.Application.DTOs.ResultDto.Success();
+            return BitsBlog.Application.DTO.ResultDto.Success();
         }
     }
 }
