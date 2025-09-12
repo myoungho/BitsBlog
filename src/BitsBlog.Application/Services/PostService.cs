@@ -30,7 +30,11 @@ namespace BitsBlog.Application.Services
         public async Task<BitsBlog.Application.DTO.Common.PagedResult<PostDto>> GetPagedAsync(BitsBlog.Application.DTO.PostQueryDto queryDto, System.Threading.CancellationToken ct = default)
         {
             var q = _repository.AsNoTracking();
-            // No search; simple paging only
+            if (!string.IsNullOrWhiteSpace(queryDto.Q))
+            {
+                var term = queryDto.Q.Trim();
+                q = q.Where(p => EF.Functions.Like(p.Title, "%" + term + "%"));
+            }
 
             var projected = q.OrderByDescending(c => c.Id).Select(p => new PostDto(p.Id, p.Title, p.Content, p.Created));
 
@@ -46,7 +50,7 @@ namespace BitsBlog.Application.Services
             if (!string.IsNullOrWhiteSpace(queryDto.Q))
             {
                 var term = queryDto.Q.Trim();
-                query = query.Where(p => EF.Functions.Like(p.Title, "%" + term + "%") || EF.Functions.Like(p.Content, "%" + term + "%"));
+                query = query.Where(p => EF.Functions.Like(p.Title, "%" + term + "%"));
             }
             return query.CountAsync(ct);
         }

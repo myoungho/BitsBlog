@@ -9,36 +9,36 @@
     var baseRoutes = new Microsoft.AspNetCore.Routing.RouteValueDictionary(Model.ExtraRouteValues ?? new System.Collections.Generic.Dictionary<string, object?>());
 }
 <nav class="mt-4 d-flex align-items-center justify-content-center" aria-label="Pagination">
-  <ul class="pagination mb-0">
-    <li class="page-item @(Model.Page <= 1 ? "disabled" : string.Empty)">
-      <a class="page-link" href="@Url.Action(Model.Action, Model.Controller, Merge(baseRoutes, 1, Model.PageSize, Model.Area))" aria-label="First"><span aria-hidden="true">&laquo;&laquo;</span></a>
-    </li>
-    <li class="page-item @(Model.Page <= 1 ? "disabled" : string.Empty)">
-      <a class="page-link" href="@Url.Action(Model.Action, Model.Controller, Merge(baseRoutes, Model.Page - 1, Model.PageSize, Model.Area))" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>
-    </li>
+    <ul class="pagination mb-0">
+        <li class="page-item @(Model.Page <= 1 ? "disabled" : string.Empty)">
+            <a class="page-link" href="@Url.Action(Model.Action, Model.Controller, Merge(baseRoutes, 1, Model.PageSize, Model.Area))" aria-label="First"><span aria-hidden="true">&laquo;&laquo;</span></a>
+        </li>
+        <li class="page-item @(Model.Page <= 1 ? "disabled" : string.Empty)">
+            <a class="page-link" href="@Url.Action(Model.Action, Model.Controller, Merge(baseRoutes, Model.Page - 1, Model.PageSize, Model.Area))" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>
+        </li>
 
-    @{
-      var window = 9;
-      var start = Model.Page - (window / 2);
-      var end = start + window - 1;
-      if (start < 1) { start = 1; end = System.Math.Min(totalPages, start + window - 1); }
-      if (end > totalPages) { end = totalPages; start = System.Math.Max(1, end - window + 1); }
-      for (var p = start; p <= end; p++)
-      {
-        <li class="page-item @(p == Model.Page ? "active" : string.Empty)"><a class="page-link" href="@Url.Action(Model.Action, Model.Controller, Merge(baseRoutes, p, Model.PageSize, Model.Area))">@p</a></li>
-      }
-    }
+        @{
+            var window = 9;
+            var start = Model.Page - (window / 2);
+            var end = start + window - 1;
+            if (start < 1) { start = 1; end = System.Math.Min(totalPages, start + window - 1); }
+            if (end > totalPages) { end = totalPages; start = System.Math.Max(1, end - window + 1); }
+            for (var p = start; p <= end; p++)
+            {
+                <li class="page-item @(p == Model.Page ? "active" : string.Empty)"><a class="page-link" href="@Url.Action(Model.Action, Model.Controller, Merge(baseRoutes, p, Model.PageSize, Model.Area))">@p</a></li>
+            }
+        }
 
-    <li class="page-item @(Model.Page >= totalPages ? "disabled" : string.Empty)">
-      <a class="page-link" href="@Url.Action(Model.Action, Model.Controller, Merge(baseRoutes, Model.Page + 1, Model.PageSize, Model.Area))" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>
-    </li>
-    <li class="page-item @(Model.Page >= totalPages ? "disabled" : string.Empty)">
-      <a class="page-link" href="@Url.Action(Model.Action, Model.Controller, Merge(baseRoutes, totalPages, Model.PageSize, Model.Area))" aria-label="Last"><span aria-hidden="true">&raquo;&raquo;</span></a>
-    </li>
-  </ul>
+        <li class="page-item @(Model.Page >= totalPages ? "disabled" : string.Empty)">
+            <a class="page-link" href="@Url.Action(Model.Action, Model.Controller, Merge(baseRoutes, Model.Page + 1, Model.PageSize, Model.Area))" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>
+        </li>
+        <li class="page-item @(Model.Page >= totalPages ? "disabled" : string.Empty)">
+            <a class="page-link" href="@Url.Action(Model.Action, Model.Controller, Merge(baseRoutes, totalPages, Model.PageSize, Model.Area))" aria-label="Last"><span aria-hidden="true">&raquo;&raquo;</span></a>
+        </li>
+    </ul>
 </nav>
 
-@functions{
+@functions {
     object Merge(Microsoft.AspNetCore.Routing.RouteValueDictionary baseRoutes, int page, int pageSize, string? area)
     {
         var routes = new Microsoft.AspNetCore.Routing.RouteValueDictionary(baseRoutes);

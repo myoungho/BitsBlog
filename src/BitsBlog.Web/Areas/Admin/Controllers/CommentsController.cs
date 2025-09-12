@@ -30,31 +30,29 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
         {
             (page, pageSize) = BitsBlog.Web.Services.PagingUtils.Normalize(page, pageSize);
             int total = 0; IReadOnlyList<CommentVm> items = Array.Empty<CommentVm>();
-            if (postId.HasValue)
+            var url = $"comments?page={page}&pageSize={pageSize}" +
+                      (postId.HasValue ? $"&postId={postId.Value}" : string.Empty) +
+                      (string.IsNullOrWhiteSpace(q) ? string.Empty : $"&q={Uri.EscapeDataString(q)}") +
+                      (string.IsNullOrWhiteSpace(sort) ? string.Empty : $"&sort={Uri.EscapeDataString(sort)}");
+            var res = await Api().GetAsync(url);
+            if (!res.IsSuccessStatusCode)
             {
-                var url = $"comments?page={page}&pageSize={pageSize}&postId={postId.Value}" +
-                          (string.IsNullOrWhiteSpace(q) ? string.Empty : $"&q={Uri.EscapeDataString(q)}") +
-                          (string.IsNullOrWhiteSpace(sort) ? string.Empty : $"&sort={Uri.EscapeDataString(sort)}");
-                var res = await Api().GetAsync(url);
-                if (!res.IsSuccessStatusCode)
-                {
-                    ViewData["Error"] = "Failed to load comments.";
-                    items = Array.Empty<CommentVm>();
-                    total = 0;
-                }
-                else
-                {
-                    var paged = await res.Content.ReadFromJsonAsync<BitsBlog.Application.DTO.Common.PagedResult<CommentVm>>()
-                                ?? new BitsBlog.Application.DTO.Common.PagedResult<CommentVm>
-                                {
-                                    Items = Array.Empty<CommentVm>(),
-                                    Page = page,
-                                    PageSize = pageSize,
-                                    Total = 0
-                                };
-                    items = paged.Items;
-                    total = paged.Total;
-                }
+                ViewData["Error"] = "Failed to load comments.";
+                items = Array.Empty<CommentVm>();
+                total = 0;
+            }
+            else
+            {
+                var paged = await res.Content.ReadFromJsonAsync<BitsBlog.Application.DTO.Common.PagedResult<CommentVm>>()
+                            ?? new BitsBlog.Application.DTO.Common.PagedResult<CommentVm>
+                            {
+                                Items = Array.Empty<CommentVm>(),
+                                Page = page,
+                                PageSize = pageSize,
+                                Total = 0
+                            };
+                items = paged.Items;
+                total = paged.Total;
             }
             ViewData["PostId"] = postId;
             var vm = new BitsBlog.Application.DTO.Common.PagedResult<CommentVm>

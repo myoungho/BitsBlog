@@ -27,7 +27,6 @@ namespace BitsBlog.WebApi.Controllers
         [ProducesResponseType(typeof(PagedResult<CommentDto>), 200)]
         public async Task<IActionResult> Get([FromQuery] CommentQueryDto query)
         {
-            if (query.PostId <= 0) return BadRequest();
             if (query.Page < 1) query.Page = 1;
             if (query.PageSize < 1) query.PageSize = 10;
             if (query.PageSize > 100) query.PageSize = 100;

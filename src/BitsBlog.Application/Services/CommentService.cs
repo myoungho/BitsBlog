@@ -32,19 +32,23 @@ namespace BitsBlog.Application.Services
 
         public async Task<BitsBlog.Application.DTO.Common.PagedResult<CommentDto>> GetPagedAsync(BitsBlog.Application.DTO.CommentQueryDto queryDto, System.Threading.CancellationToken ct = default)
         {
-            var q = _repository.AsNoTracking().Where(c => c.PostId == queryDto.PostId);
-            // No search; simple paging only
+            var q = _repository.AsNoTracking();
+            if (queryDto.PostId > 0)
+            {
+                q = q.Where(c => c.PostId == queryDto.PostId);
+            }
+            if (!string.IsNullOrWhiteSpace(queryDto.Q))
+            {
+                var term = queryDto.Q.Trim();
+                q = q.Where(c => EF.Functions.Like(c.Content, "%" + term + "%") || EF.Functions.Like(c.AuthorDisplayName!, "%" + term + "%"));
+            }
 
-            var projected = q.Select(c => new CommentDto(c.Id, c.PostId, c.Content, c.Created)
+            var projected = q.OrderByDescending(c => c.Id).Select(c => new CommentDto(c.Id, c.PostId, c.Content, c.Created)
             {
                 AuthorLoginId = c.AuthorLoginId,
                 AuthorDisplayName = c.AuthorDisplayName,
                 CustomerId = c.CustomerId
             });
-
-            string defaultSort = nameof(CommentDto.Created);
-            string? sortBy = defaultSort;
-            string? sortOrder = "desc";
 
             var paged = await _repository.PagedAsync<Comment, CommentDto>(
                 projected,
@@ -56,7 +60,11 @@ namespace BitsBlog.Application.Services
 
         public Task<int> CountAsync(BitsBlog.Application.DTO.CommentQueryDto queryDto, System.Threading.CancellationToken ct = default)
         {
-            var query = _repository.AsNoTracking().Where(c => c.PostId == queryDto.PostId);
+            var query = _repository.AsNoTracking();
+            if (queryDto.PostId > 0)
+            {
+                query = query.Where(c => c.PostId == queryDto.PostId);
+            }
             if (!string.IsNullOrWhiteSpace(queryDto.Q))
             {
                 var term = queryDto.Q.Trim();

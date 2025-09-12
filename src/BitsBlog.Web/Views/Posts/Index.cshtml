@@ -4,10 +4,14 @@
     var totalPages = (int)Math.Ceiling((double)Model.Total / Math.Max(1, Model.PageSize));
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <h1 class="h3 m-0">Posts</h1>
-    <a class="btn btn-primary" href="/Posts/Create">New Post</a>
-</div>
+    <form method="get" class="d-flex align-items-center gap-2" role="search">
+        <input type="text" name="q" value="@((string?)ViewData["q"])" class="form-control" placeholder="Search by title" style="min-width: 220px;" />
+        <button class="btn btn-outline-secondary" type="submit">Search</button>
+    </form>
+    <a class="btn btn-primary ms-auto" href="/Posts/Create">New Post</a>
+    </div>
 
 @if (ViewData["Error"] is string err && !string.IsNullOrWhiteSpace(err))
 {
@@ -37,5 +41,5 @@ else
         </li>
     }
     </ul>
-    @await Html.PartialAsync("~/Views/Shared/_Pagination.cshtml", new BitsBlog.Web.Models.PaginationModel { Action = "Index", Controller = "Posts", Page = Model.Page, PageSize = Model.PageSize, Total = Model.Total })
+    @await Html.PartialAsync("~/Views/Shared/_Pagination.cshtml", new BitsBlog.Web.Models.PaginationModel { Action = "Index", Controller = "Posts", Page = Model.Page, PageSize = Model.PageSize, Total = Model.Total, ExtraRouteValues = (string.IsNullOrWhiteSpace(ViewData["q"] as string) ? null : new System.Collections.Generic.Dictionary<string, object?> { ["q"] = ViewData["q"] }) })
 }
