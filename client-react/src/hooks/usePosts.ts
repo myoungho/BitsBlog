@@ -16,7 +16,7 @@ export function usePosts() {
       .then((res) => res.json() as Promise<Post[]>)
       .then(setPosts)
       .catch((err) => {
-        console.error("게시글 목록을 불러오는 중 오류", err);
+        console.error("Error loading post list", err);
       });
   }, []);
 

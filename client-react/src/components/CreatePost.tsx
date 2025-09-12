@@ -19,7 +19,7 @@ export function CreatePost({ onCreated }: CreatePostProps) {
     e.preventDefault();
     setError(null);
     if (!title.trim() || !content.trim()) {
-      setError("제목과 내용을 입력해 주세요.");
+      setError("Please enter a title and content.");
       return;
     }
     setSubmitting(true);
@@ -31,14 +31,14 @@ export function CreatePost({ onCreated }: CreatePostProps) {
         body: JSON.stringify({ title, content }),
       });
       if (!res.ok) {
-        throw new Error(`요청 실패: ${res.status}`);
+        throw new Error(`Request failed: ${res.status}`);
       }
       const created = (await res.json()) as Post;
       onCreated?.(created);
       setTitle("");
       setContent("");
     } catch (err: any) {
-      setError(err?.message ?? "등록 중 오류가 발생했습니다.");
+      setError(err?.message ?? "An error occurred during registration.");
     } finally {
       setSubmitting(false);
     }
@@ -47,10 +47,10 @@ export function CreatePost({ onCreated }: CreatePostProps) {
   return (
     <form onSubmit={handleSubmit}>
       {error && (
-        <div className="text-danger mb-2">오류: {error}</div>
+        <div className="text-danger mb-2">Error: {error}</div>
       )}
       <Form.Group className="mb-3" controlId="title">
-        <Form.Label>제목</Form.Label>
+        <Form.Label>Title</Form.Label>
         <Form.Control
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -58,19 +58,19 @@ export function CreatePost({ onCreated }: CreatePostProps) {
         />
       </Form.Group>
       <Form.Group className="mb-3" controlId="content">
-        <Form.Label>내용</Form.Label>
+        <Form.Label>Content</Form.Label>
         <div className="border rounded">
           <CKEditor
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             editor={ClassicEditor as any}
             data={content}
             onChange={(_, editor) => setContent(editor.getData())}
-            config={{ language: 'ko' }}
+            config={{ language: 'en' }}
           />
         </div>
       </Form.Group>
       <Button type="submit" disabled={submitting}>
-        {submitting ? "저장 중..." : "등록"}
+        {submitting ? "Saving..." : "Submit"}
       </Button>
     </form>
   );

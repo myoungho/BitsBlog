@@ -88,8 +88,6 @@ namespace BitsBlog.Web.Controllers
             return View(vm);
         }
 
-        
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
@@ -132,8 +130,8 @@ namespace BitsBlog.Web.Controllers
                 return RedirectToAction("Details", new { id = postId });
             }
             var client = _clientFactory.CreateClient("api");
-            var res = await client.PostAsJsonAsync($"comments", new CommentCreateDto { PostId = postId, Content = content });
-            // 성공/실패 무관히 상세로 복귀
+            await client.PostAsJsonAsync($"comments", new CommentCreateDto { PostId = postId, Content = content });
+            // Return to details regardless of success/failure
             return RedirectToAction("Details", new { id = postId });
         }
 

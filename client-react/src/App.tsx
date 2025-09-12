@@ -14,8 +14,8 @@ export default function App() {
           <Navbar.Toggle aria-controls="navbar" />
           <Navbar.Collapse id="navbar">
             <Nav className="ms-auto">
-              <Nav.Link as={Link} to="/">목록</Nav.Link>
-              <Nav.Link as={Link} to="/new">새 글 작성</Nav.Link>
+              <Nav.Link as={Link} to="/">List</Nav.Link>
+              <Nav.Link as={Link} to="/new">New Post</Nav.Link>
             </Nav>
           </Navbar.Collapse>
         </Container>

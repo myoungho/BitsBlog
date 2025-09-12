@@ -7,7 +7,7 @@ interface PostsListProps {
 }
 
 export function PostsList({ posts }: PostsListProps) {
-  if (!posts.length) return <div>게시글이 없습니다.</div>;
+  if (!posts.length) return <div>No posts available.</div>;
   return (
     <div>
       {posts.map((p) => (

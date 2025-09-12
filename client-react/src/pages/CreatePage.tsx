@@ -8,12 +8,12 @@ export function CreatePage() {
   return (
     <div>
       <div className="mb-3">
-        <Link to="/" className="btn btn-outline-secondary">목록</Link>
+        <Link to="/" className="btn btn-outline-secondary">List</Link>
       </div>
 
       <Card>
         <Card.Body>
-          <h1 className="h4 mb-3">새 글 작성</h1>
+          <h1 className="h4 mb-3">New Post</h1>
           <CreatePost onCreated={() => navigate("/")} />
         </Card.Body>
       </Card>

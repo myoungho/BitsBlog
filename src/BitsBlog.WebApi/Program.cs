@@ -15,7 +15,7 @@ builder.Services.AddCors();
 builder.Services.AddSingleton<Ganss.Xss.IHtmlSanitizer>(_ =>
 {
     var sanitizer = new Ganss.Xss.HtmlSanitizer();
-    // 허용 태그/속성 추가
+    // Add allowed tags/attributes
     sanitizer.AllowedTags.UnionWith(new[] {
         "h1","h2","h3","h4","h5","h6",
         "p","span","pre","code","blockquote",
@@ -27,7 +27,7 @@ builder.Services.AddSingleton<Ganss.Xss.IHtmlSanitizer>(_ =>
         "href","title","target","rel",
         "src","alt","width","height","class"
     });
-    sanitizer.AllowedSchemes.Add("data"); // base64 이미지 허용
+    sanitizer.AllowedSchemes.Add("data"); // allow base64 images
     return sanitizer;
 });
 
@@ -45,7 +45,7 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "BitsBlog API",
         Version = "v1",
-        Description = "Blog WebApi (JWT 인증, Admin/Users/Posts/Comments 관리)"
+        Description = "Blog WebApi (JWT authentication, Admin/Users/Posts/Comments management)"
     });
     var xml1 = System.IO.Path.Combine(System.AppContext.BaseDirectory, typeof(Program).Assembly.GetName().Name + ".xml");
     if (System.IO.File.Exists(xml1)) c.IncludeXmlComments(xml1, includeControllerXmlComments: true);
@@ -84,7 +84,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-        c.RoutePrefix = string.Empty; // Swagger UI를 루트("/")에서 실행되도록
+        c.RoutePrefix = string.Empty; // Serve Swagger UI at the root ("/")
     });
 }
 app.UseCors(cors =>
