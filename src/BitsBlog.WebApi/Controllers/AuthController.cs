@@ -39,7 +39,7 @@ namespace BitsBlog.WebApi.Controllers
                 return BadRequest(reg.Error ?? "Registration failed");
             }
 
-            var token = GenerateJwt(new Customer { LoginId = reg.Data.LoginId, DisplayName = reg.Data.DisplayName, Role = reg.Data.Role });
+            var token = GenerateJwt(new Customer { Id = reg.Data.Id ?? 0, LoginId = reg.Data.LoginId, DisplayName = reg.Data.DisplayName, Role = reg.Data.Role });
             return Ok(new AuthResponse(token.Token, token.Expires, reg.Data.Role, reg.Data.DisplayName));
         }
 
@@ -52,7 +52,7 @@ namespace BitsBlog.WebApi.Controllers
         {
             var result = await _customers.LoginAsync(request, HttpContext.RequestAborted);
             if (!result.Ok || result.Data is null) return Unauthorized();
-            var token = GenerateJwt(new Customer { LoginId = result.Data.LoginId, DisplayName = result.Data.DisplayName, Role = result.Data.Role });
+            var token = GenerateJwt(new Customer { Id = result.Data.Id ?? 0, LoginId = result.Data.LoginId, DisplayName = result.Data.DisplayName, Role = result.Data.Role });
             return Ok(new AuthResponse(token.Token, token.Expires, result.Data.Role, result.Data.DisplayName));
         }
 
@@ -109,8 +109,10 @@ namespace BitsBlog.WebApi.Controllers
             if (!up.Ok) return BadRequest(up.Error ?? "Update failed");
             var me = await _customers.GetProfileAsync(new ProfileQueryDto { LoginId = loginId }, HttpContext.RequestAborted);
             if (me is null) return Unauthorized();
+            int.TryParse(User.FindFirstValue("cid"), out var currentId);
             var token = GenerateJwt(new Customer
             {
+                Id = currentId,
                 LoginId = me.LoginId,
                 DisplayName = me.DisplayName,
                 Role = me.Role

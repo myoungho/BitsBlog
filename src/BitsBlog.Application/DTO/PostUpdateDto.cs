@@ -2,11 +2,14 @@ namespace BitsBlog.Application.DTO
 {
     public class PostUpdateDto
     {
-        /// <summary>수정할 게시글 ID</summary>
+        /// <summary>ID of the post to update</summary>
         public int Id { get; set; }
-        /// <summary>수정할 제목</summary>
+
+        /// <summary>Updated title</summary>
         public string Title { get; set; } = string.Empty;
-        /// <summary>수정할 본문(HTML 가능, 서버에서 sanitize)</summary>
+
+        /// <summary>Updated body (HTML allowed; sanitized on server)</summary>
         public string Content { get; set; } = string.Empty;
     }
 }
+

@@ -32,7 +32,7 @@ namespace BitsBlog.Application.Services
             var q = _repository.AsNoTracking();
             // No search; simple paging only
 
-            var projected = q.Select(p => new PostDto(p.Id, p.Title, p.Content, p.Created));
+            var projected = q.OrderByDescending(c => c.Id).Select(p => new PostDto(p.Id, p.Title, p.Content, p.Created));
 
             return await _repository.PagedAsync<Post, PostDto>(
                 projected,

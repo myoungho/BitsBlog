@@ -13,7 +13,7 @@ namespace BitsBlog.Web.Models
         public IDictionary<string, object?> ExtraRouteValues { get; set; } = new Dictionary<string, object?>();
 
         // UI options
-        public bool ShowPageSize { get; set; } = true;
+        public bool ShowPageSize { get; set; } = false;
         public int[] PageSizeOptions { get; set; } = new[] { 10, 20, 50, 100 };
     }
 }

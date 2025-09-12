@@ -1,9 +1,11 @@
-﻿@model BitsBlog.Application.DTO.Common.PagedResult<BitsBlog.Web.Areas.Admin.Controllers.CommentsController.CommentVm>
+@model BitsBlog.Application.DTO.Common.PagedResult<BitsBlog.Web.Areas.Admin.Controllers.CommentsController.CommentVm>
 @{
     ViewData["Title"] = "Comments";
     var postId = ViewData["PostId"] as int?;
     var q = ViewData["q"] as string; var sort = ViewData["sort"] as string;
 }
+
+@await Html.PartialAsync("~/Areas/Admin/Views/Shared/_AdminNav.cshtml")
 
 @if (ViewData["Error"] is string err && !string.IsNullOrWhiteSpace(err)) {<div class="alert alert-danger">@err</div>}
 @if (TempData["Error"] is string tempErr) {<div class="alert alert-danger">@tempErr</div>}
@@ -51,7 +53,7 @@
             </td>
             <td>@c.Created.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
             <td>
-              <form method="post" asp-action="Delete" onsubmit="return confirm('ì‚­ì œí•˜ì‹œê² ìŠµë‹ˆê¹Œ?')">
+              <form method="post" asp-action="Delete" onsubmit="return confirm('Are you sure you want to delete this comment?')">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="postId" value="@c.PostId" />
                 <input type="hidden" name="commentId" value="@c.Id" />
@@ -68,7 +70,8 @@
       @await Html.PartialAsync("~/Views/Shared/_Pagination.cshtml", new BitsBlog.Web.Models.PaginationModel { Area = "Admin", Controller = "Comments", Action = "Index", Page = Model.Page, PageSize = Model.PageSize, Total = Model.Total, ExtraRouteValues = new System.Collections.Generic.Dictionary<string, object?> { ["postId"] = ViewData["PostId"] } })
     }
   </div>
-</div>
+  </div>
+
 
 
 

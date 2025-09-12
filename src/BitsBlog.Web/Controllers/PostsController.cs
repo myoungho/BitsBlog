@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Net.Http.Json;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using BitsBlog.Application.DTO;
 using BitsBlog.Web.Models;
@@ -66,7 +67,15 @@ namespace BitsBlog.Web.Controllers
         {
             if (!ModelState.IsValid) return View(model);
             var client = _clientFactory.CreateClient("api");
-            await client.PostAsJsonAsync("posts", new PostCreateDto { Title = model.Title, Content = model.Content });
+            var jwt = HttpContext.Request.Cookies["jwt"];
+            if (!string.IsNullOrEmpty(jwt))
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt);
+            var res = await client.PostAsJsonAsync("posts", new PostCreateDto { Title = model.Title, Content = model.Content });
+            if (!res.IsSuccessStatusCode)
+            {
+                TempData["Error"] = "Failed to create post. Please login again.";
+                return View(model);
+            }
             return RedirectToAction("Index", "Home");
         }
 
@@ -83,6 +92,7 @@ namespace BitsBlog.Web.Controllers
             {
                 try
                 {
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                     var meResp = await client.GetAsync("auth/me");
                     if (meResp.IsSuccessStatusCode)
                     {
@@ -102,6 +112,8 @@ namespace BitsBlog.Web.Controllers
         public async Task<IActionResult> Edit(int id)
         {
             var client = _clientFactory.CreateClient("api");
+            var jwt2 = HttpContext.Request.Cookies["jwt"];
+            if (!string.IsNullOrEmpty(jwt2)) client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt2);
             var post = await client.GetFromJsonAsync<PostDto>($"posts/{id}");
             if (post is null) return NotFound();
             var vm = new EditPostViewModel { Id = post.Id, Title = post.Title, Content = post.Content };
@@ -115,6 +127,8 @@ namespace BitsBlog.Web.Controllers
         {
             if (!ModelState.IsValid) return View(model);
             var client = _clientFactory.CreateClient("api");
+            var jwt3 = HttpContext.Request.Cookies["jwt"];
+            if (!string.IsNullOrEmpty(jwt3)) client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt3);
             var res = await client.PutAsJsonAsync($"posts", new PostUpdateDto { Id = model.Id, Title = model.Title, Content = model.Content });
             if (res.StatusCode == System.Net.HttpStatusCode.NotFound)
                 return NotFound();
@@ -132,6 +146,8 @@ namespace BitsBlog.Web.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var client = _clientFactory.CreateClient("api");
+            var jwt4 = HttpContext.Request.Cookies["jwt"];
+            if (!string.IsNullOrEmpty(jwt4)) client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt4);
             var res = await client.DeleteAsync($"posts/{id}");
             if (res.StatusCode == System.Net.HttpStatusCode.NotFound)
                 return NotFound();
@@ -158,6 +174,8 @@ namespace BitsBlog.Web.Controllers
                 return RedirectToAction("Details", new { id = postId });
             }
             var client = _clientFactory.CreateClient("api");
+            var jwt5 = HttpContext.Request.Cookies["jwt"];
+            if (!string.IsNullOrEmpty(jwt5)) client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt5);
             await client.PostAsJsonAsync($"comments", new CommentCreateDto { PostId = postId, Content = content });
             // Return to details regardless of success/failure
             return RedirectToAction("Details", new { id = postId });
@@ -172,6 +190,8 @@ namespace BitsBlog.Web.Controllers
             if (string.IsNullOrEmpty(token))
                 return RedirectToAction("Login", "Account", new { returnUrl = $"/Posts/Details/{postId}" });
             var client = _clientFactory.CreateClient("api");
+            var jwt6 = HttpContext.Request.Cookies["jwt"];
+            if (!string.IsNullOrEmpty(jwt6)) client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt6);
             await client.PutAsJsonAsync($"comments", new CommentUpdateDto { PostId = postId, CommentId = commentId, Content = content });
             return RedirectToAction("Details", new { id = postId });
         }
@@ -185,6 +205,8 @@ namespace BitsBlog.Web.Controllers
             if (string.IsNullOrEmpty(token))
                 return RedirectToAction("Login", "Account", new { returnUrl = $"/Posts/Details/{postId}" });
             var client = _clientFactory.CreateClient("api");
+            var jwt7 = HttpContext.Request.Cookies["jwt"];
+            if (!string.IsNullOrEmpty(jwt7)) client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt7);
             await client.DeleteAsync($"comments/{commentId}");
             return RedirectToAction("Details", new { id = postId });
         }

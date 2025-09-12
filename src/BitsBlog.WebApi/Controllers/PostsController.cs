@@ -57,7 +57,7 @@ namespace BitsBlog.WebApi.Controllers
             var displayName = User?.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
             int? customerId = null;
             var cid = User?.FindFirst("cid")?.Value;
-            if (int.TryParse(cid, out var parsed)) customerId = parsed;
+            if (int.TryParse(cid, out var parsed) && parsed > 0) customerId = parsed;
             var dto = new BitsBlog.Application.DTO.PostCreateDto { Title = body.Title, Content = safe, AuthorLoginId = loginId, AuthorDisplayName = displayName, CustomerId = customerId };
             var post = await _service.CreateAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = post.Id }, post);

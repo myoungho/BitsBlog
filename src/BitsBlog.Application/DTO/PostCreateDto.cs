@@ -2,15 +2,20 @@ namespace BitsBlog.Application.DTO
 {
     public class PostCreateDto
     {
-        /// <summary>게시글 제목</summary>
+        /// <summary>Post title</summary>
         public string Title { get; set; } = string.Empty;
-        /// <summary>게시글 본문(HTML 가능, 서버에서 sanitize)</summary>
+
+        /// <summary>Post body (HTML allowed; sanitized on server)</summary>
         public string Content { get; set; } = string.Empty;
-        /// <summary>작성자 로그인ID(서버에서 JWT로 주입)</summary>
+
+        /// <summary>Author login ID (injected from JWT on server)</summary>
         public string? AuthorLoginId { get; set; }
-        /// <summary>작성자 표시명(서버에서 JWT로 주입)</summary>
+
+        /// <summary>Author display name (injected from JWT on server)</summary>
         public string? AuthorDisplayName { get; set; }
-        /// <summary>작성자 고객ID(서버에서 JWT로 주입)</summary>
+
+        /// <summary>Author customer ID (injected from JWT on server)</summary>
         public int? CustomerId { get; set; }
     }
 }
+

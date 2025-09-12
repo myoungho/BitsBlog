@@ -76,11 +76,10 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(int id, string? mode)
+        public async Task<IActionResult> Delete(int id)
         {
             var client = Api();
-            var m = string.IsNullOrWhiteSpace(mode) ? "anonymize" : mode;
-            var res = await client.DeleteAsync($"users/{id}?mode={Uri.EscapeDataString(m!)}");
+            var res = await client.DeleteAsync($"users/{id}?mode=anonymize");
             if (!res.IsSuccessStatusCode) TempData["Error"] = "Failed to delete user.";
             return RedirectToAction(nameof(Index));
         }

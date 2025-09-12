@@ -47,7 +47,7 @@ namespace BitsBlog.WebApi.Controllers
             var loginId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
             var displayName = User.FindFirstValue(ClaimTypes.Name) ?? loginId;
             int? customerId = null; var cid = User.FindFirstValue("cid");
-            if (int.TryParse(cid, out var parsed)) customerId = parsed;
+            if (int.TryParse(cid, out var parsed) && parsed > 0) customerId = parsed;
             var dto = new CommentCreateDto { PostId = body.PostId, Content = content, AuthorLoginId = loginId, AuthorDisplayName = displayName, CustomerId = customerId };
             var created = await _service.CreateAsync(dto);
             return Created($"/api/comments/{created.Id}", created);
