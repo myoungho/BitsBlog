@@ -29,8 +29,9 @@ namespace BitsBlog.WebApi.Controllers
             if (query.Page < 1) query.Page = 1;
             if (query.PageSize < 1) query.PageSize = 10;
             if (query.PageSize > 100) query.PageSize = 100;
-            var total = await _service.CountAsync(query);
-            var comments = await _service.GetPagedAsync(query);
+            var ct = HttpContext.RequestAborted;
+            var total = await _service.CountAsync(query, ct);
+            var comments = await _service.GetPagedAsync(query, ct);
             Response.Headers["X-Total-Count"] = total.ToString();
             return Ok(comments);
         }
@@ -60,14 +61,14 @@ namespace BitsBlog.WebApi.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> Put(int postId, int commentId, [FromBody] BitsBlog.Application.DTOs.CommentUpdateDto body)
         {
-            var existing = await _service.GetByIdAsync(commentId);
+            var existing = await _service.GetByIdAsync(commentId, HttpContext.RequestAborted);
             if (existing is null || existing.PostId != postId) return NotFound();
             var isAdmin = User?.IsInRole("Admin") == true;
             var loginId = User?.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
             if (!isAdmin && !string.Equals(existing.AuthorLoginId, loginId, StringComparison.OrdinalIgnoreCase))
                 return Forbid();
             var content = _sanitizer.Sanitize(body.Content ?? string.Empty);
-            var updated = await _service.UpdateAsync(new BitsBlog.Application.DTOs.CommentUpdateDto { CommentId = commentId, Content = content });
+            var updated = await _service.UpdateAsync(new BitsBlog.Application.DTOs.CommentUpdateDto { CommentId = commentId, Content = content }, HttpContext.RequestAborted);
             return Ok(updated);
         }
 
@@ -78,13 +79,13 @@ namespace BitsBlog.WebApi.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> Delete(int postId, int commentId)
         {
-            var existing = await _service.GetByIdAsync(commentId);
+            var existing = await _service.GetByIdAsync(commentId, HttpContext.RequestAborted);
             if (existing is null || existing.PostId != postId) return NotFound();
             var isAdmin = User?.IsInRole("Admin") == true;
             var loginId = User?.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
             if (!isAdmin && !string.Equals(existing.AuthorLoginId, loginId, StringComparison.OrdinalIgnoreCase))
                 return Forbid();
-            var ok = await _service.DeleteAsync(commentId);
+            var ok = await _service.DeleteAsync(commentId, HttpContext.RequestAborted);
             if (!ok) return NotFound();
             return NoContent();
         }

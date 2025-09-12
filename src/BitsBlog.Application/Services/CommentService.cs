@@ -16,12 +16,12 @@ namespace BitsBlog.Application.Services
             _repository = repository;
         }
 
-        public async Task<IEnumerable<CommentDto>> GetCommentsByPostIdAsync(int postId)
+        public async Task<IEnumerable<CommentDto>> GetCommentsByPostIdAsync(int postId, System.Threading.CancellationToken ct = default)
         {
             var q = _repository.AsNoTracking()
                 .Where(c => c.PostId == postId)
                 .OrderByDescending(c => c.Id);
-            var list = await q.ToListAsync();
+            var list = await q.ToListAsync(ct);
             return list.Select(c => new CommentDto(c.Id, c.PostId, c.Content, c.Created)
             {
                 AuthorLoginId = c.AuthorLoginId,
@@ -29,7 +29,7 @@ namespace BitsBlog.Application.Services
             });
         }
 
-        public async Task<IReadOnlyList<CommentDto>> GetPagedAsync(BitsBlog.Application.DTOs.CommentQueryDto queryDto)
+        public async Task<IReadOnlyList<CommentDto>> GetPagedAsync(BitsBlog.Application.DTOs.CommentQueryDto queryDto, System.Threading.CancellationToken ct = default)
         {
             var skip = (queryDto.Page - 1) * queryDto.PageSize; if (skip < 0) skip = 0;
             var take = queryDto.PageSize <= 0 ? 10 : queryDto.PageSize;
@@ -53,10 +53,10 @@ namespace BitsBlog.Application.Services
                     AuthorDisplayName = c.AuthorDisplayName,
                     CustomerId = c.CustomerId
                 });
-            return await sel.ToListAsync();
+            return await sel.ToListAsync(ct);
         }
 
-        public Task<int> CountAsync(BitsBlog.Application.DTOs.CommentQueryDto queryDto)
+        public Task<int> CountAsync(BitsBlog.Application.DTOs.CommentQueryDto queryDto, System.Threading.CancellationToken ct = default)
         {
             var query = _repository.AsNoTracking().Where(c => c.PostId == queryDto.PostId);
             if (!string.IsNullOrWhiteSpace(queryDto.Q))
@@ -64,17 +64,17 @@ namespace BitsBlog.Application.Services
                 var term = queryDto.Q.Trim();
                 query = query.Where(c => EF.Functions.Like(c.Content, "%" + term + "%") || EF.Functions.Like(c.AuthorDisplayName!, "%" + term + "%"));
             }
-            return query.CountAsync();
+            return query.CountAsync(ct);
         }
 
-        public async Task<CommentDto> CreateAsync(BitsBlog.Application.DTOs.CommentCreateDto dto)
+        public async Task<CommentDto> CreateAsync(BitsBlog.Application.DTOs.CommentCreateDto dto, System.Threading.CancellationToken ct = default)
         {
             var comment = new Comment { PostId = dto.PostId, Content = dto.Content, AuthorLoginId = dto.AuthorLoginId, AuthorDisplayName = dto.AuthorDisplayName, CustomerId = dto.CustomerId };
             Comment created = null!;
             await _repository.ExecuteInTransactionAsync(async _ =>
             {
-                created = await _repository.InsertAsync(comment);
-            });
+                created = await _repository.InsertAsync(comment, ct);
+            }, ct);
             return new CommentDto(created.Id, created.PostId, created.Content, created.Created)
             {
                 AuthorLoginId = created.AuthorLoginId,
@@ -83,9 +83,9 @@ namespace BitsBlog.Application.Services
             };
         }
 
-        public async Task<CommentDto?> GetByIdAsync(int id)
+        public async Task<CommentDto?> GetByIdAsync(int id, System.Threading.CancellationToken ct = default)
         {
-            var c = await _repository.GetByIdAsync(id);
+            var c = await _repository.GetByIdAsync(id, ct);
             if (c is null) return null;
             return new CommentDto(c.Id, c.PostId, c.Content, c.Created)
             {
@@ -95,15 +95,15 @@ namespace BitsBlog.Application.Services
             };
         }
 
-        public async Task<CommentDto?> UpdateAsync(BitsBlog.Application.DTOs.CommentUpdateDto dto)
+        public async Task<CommentDto?> UpdateAsync(BitsBlog.Application.DTOs.CommentUpdateDto dto, System.Threading.CancellationToken ct = default)
         {
-            var c = await _repository.GetByIdAsync(dto.CommentId);
+            var c = await _repository.GetByIdAsync(dto.CommentId, ct);
             if (c is null) return null;
             c.Content = dto.Content;
             await _repository.ExecuteInTransactionAsync(async _ =>
             {
-                await _repository.UpdateAsync(c);
-            });
+                await _repository.UpdateAsync(c, ct);
+            }, ct);
             return new CommentDto(c.Id, c.PostId, c.Content, c.Created)
             {
                 AuthorLoginId = c.AuthorLoginId,
@@ -112,14 +112,14 @@ namespace BitsBlog.Application.Services
             };
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(int id, System.Threading.CancellationToken ct = default)
         {
-            var c = await _repository.GetByIdAsync(id);
+            var c = await _repository.GetByIdAsync(id, ct);
             if (c is null) return false;
             await _repository.ExecuteInTransactionAsync(async _ =>
             {
-                await _repository.DeleteAsync(c);
-            });
+                await _repository.DeleteAsync(c, ct);
+            }, ct);
             return true;
         }
     }

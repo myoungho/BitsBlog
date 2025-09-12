@@ -16,9 +16,9 @@ namespace BitsBlog.Application.Services
             _repository = repository;
         }
 
-        public async Task<IEnumerable<PostDto>> GetPostsAsync()
+        public async Task<IEnumerable<PostDto>> GetPostsAsync(System.Threading.CancellationToken ct = default)
         {
-            var posts = await _repository.ListAsync();
+            var posts = await _repository.ListAsync(null, ct);
             return posts.Select(p => new PostDto(p.Id, p.Title, p.Content, p.Created)
             {
                 AuthorLoginId = p.AuthorLoginId,
@@ -26,7 +26,7 @@ namespace BitsBlog.Application.Services
             });
         }
 
-        public async Task<IReadOnlyList<PostDto>> GetPagedAsync(BitsBlog.Application.DTOs.PostQueryDto queryDto)
+        public async Task<IReadOnlyList<PostDto>> GetPagedAsync(BitsBlog.Application.DTOs.PostQueryDto queryDto, System.Threading.CancellationToken ct = default)
         {
             var skip = (queryDto.Page - 1) * queryDto.PageSize;
             if (skip < 0) skip = 0; var take = queryDto.PageSize <= 0 ? 10 : queryDto.PageSize;
@@ -50,10 +50,10 @@ namespace BitsBlog.Application.Services
                     AuthorDisplayName = p.AuthorDisplayName,
                     CustomerId = p.CustomerId
                 });
-            return await sel.ToListAsync();
+            return await sel.ToListAsync(ct);
         }
 
-        public Task<int> CountAsync(BitsBlog.Application.DTOs.PostQueryDto queryDto)
+        public Task<int> CountAsync(BitsBlog.Application.DTOs.PostQueryDto queryDto, System.Threading.CancellationToken ct = default)
         {
             var query = _repository.AsNoTracking();
             if (!string.IsNullOrWhiteSpace(queryDto.Q))
@@ -61,16 +61,16 @@ namespace BitsBlog.Application.Services
                 var term = queryDto.Q.Trim();
                 query = query.Where(p => EF.Functions.Like(p.Title, "%" + term + "%") || EF.Functions.Like(p.Content, "%" + term + "%"));
             }
-            return query.CountAsync();
+            return query.CountAsync(ct);
         }
 
-        public async Task<PostDto> CreateAsync(BitsBlog.Application.DTOs.PostCreateDto dto)
+        public async Task<PostDto> CreateAsync(BitsBlog.Application.DTOs.PostCreateDto dto, System.Threading.CancellationToken ct = default)
         {
             Post post = null!;
             await _repository.ExecuteInTransactionAsync(async _ =>
             {
-                post = await _repository.InsertAsync(new Post { Title = dto.Title, Content = dto.Content, AuthorLoginId = dto.AuthorLoginId, AuthorDisplayName = dto.AuthorDisplayName, CustomerId = dto.CustomerId });
-            });
+                post = await _repository.InsertAsync(new Post { Title = dto.Title, Content = dto.Content, AuthorLoginId = dto.AuthorLoginId, AuthorDisplayName = dto.AuthorDisplayName, CustomerId = dto.CustomerId }, ct);
+            }, ct);
             return new PostDto(post.Id, post.Title, post.Content, post.Created)
             {
                 AuthorLoginId = post.AuthorLoginId,
@@ -79,9 +79,9 @@ namespace BitsBlog.Application.Services
             };
         }
 
-        public async Task<PostDto?> GetByIdAsync(int id)
+        public async Task<PostDto?> GetByIdAsync(int id, System.Threading.CancellationToken ct = default)
         {
-            var post = await _repository.GetByIdAsync(id);
+            var post = await _repository.GetByIdAsync(id, ct);
             if (post is null) return null;
             return new PostDto(post.Id, post.Title, post.Content, post.Created)
             {
@@ -91,16 +91,16 @@ namespace BitsBlog.Application.Services
             };
         }
 
-        public async Task<PostDto?> UpdateAsync(BitsBlog.Application.DTOs.PostUpdateDto dto)
+        public async Task<PostDto?> UpdateAsync(BitsBlog.Application.DTOs.PostUpdateDto dto, System.Threading.CancellationToken ct = default)
         {
-            var post = await _repository.GetByIdAsync(dto.Id);
+            var post = await _repository.GetByIdAsync(dto.Id, ct);
             if (post is null) return null;
             post.Title = dto.Title;
             post.Content = dto.Content;
             await _repository.ExecuteInTransactionAsync(async _ =>
             {
-                await _repository.UpdateAsync(post);
-            });
+                await _repository.UpdateAsync(post, ct);
+            }, ct);
             return new PostDto(post.Id, post.Title, post.Content, post.Created)
             {
                 AuthorLoginId = post.AuthorLoginId,
@@ -109,14 +109,14 @@ namespace BitsBlog.Application.Services
             };
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(int id, System.Threading.CancellationToken ct = default)
         {
-            var post = await _repository.GetByIdAsync(id);
+            var post = await _repository.GetByIdAsync(id, ct);
             if (post is null) return false;
             await _repository.ExecuteInTransactionAsync(async _ =>
             {
-                await _repository.DeleteAsync(post);
-            });
+                await _repository.DeleteAsync(post, ct);
+            }, ct);
             return true;
         }
     }

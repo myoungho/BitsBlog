@@ -26,8 +26,9 @@ namespace BitsBlog.WebApi.Controllers
             if (query.Page < 1) query.Page = 1;
             if (query.PageSize < 1) query.PageSize = 10;
             if (query.PageSize > 100) query.PageSize = 100;
-            var total = await _customers.CountUsersAsync(query);
-            var list = await _customers.ListUsersAsync(query);
+            var ct = HttpContext.RequestAborted;
+            var total = await _customers.CountUsersAsync(query, ct);
+            var list = await _customers.ListUsersAsync(query, ct);
             Response.Headers["X-Total-Count"] = total.ToString();
             return Ok(list);
         }
@@ -47,7 +48,7 @@ namespace BitsBlog.WebApi.Controllers
         public async Task<IActionResult> SetRole(int id, [FromBody] BitsBlog.Application.DTOs.SetUserRoleDto req)
         {
             if (string.IsNullOrWhiteSpace(req.Role)) return BadRequest();
-            var ok = await _customers.SetRoleAsync(id, req.Role);
+            var ok = await _customers.SetRoleAsync(id, req.Role, HttpContext.RequestAborted);
             if (!ok) return NotFound();
             return NoContent();
         }
@@ -58,7 +59,7 @@ namespace BitsBlog.WebApi.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> Delete(int id, [FromQuery] string? mode = null)
         {
-            var ok = await _admin.DeleteUserAsync(id, string.IsNullOrWhiteSpace(mode) ? "anonymize" : mode!);
+            var ok = await _admin.DeleteUserAsync(id, string.IsNullOrWhiteSpace(mode) ? "anonymize" : mode!, HttpContext.RequestAborted);
             if (!ok) return NotFound();
             return NoContent();
         }

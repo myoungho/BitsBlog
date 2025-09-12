@@ -30,8 +30,9 @@ namespace BitsBlog.WebApi.Controllers
             if (query.Page < 1) query.Page = 1;
             if (query.PageSize < 1) query.PageSize = 10;
             if (query.PageSize > 100) query.PageSize = 100;
-            var total = await _service.CountAsync(query);
-            var items = await _service.GetPagedAsync(query);
+            var ct = HttpContext.RequestAborted;
+            var total = await _service.CountAsync(query, ct);
+            var items = await _service.GetPagedAsync(query, ct);
             Response.Headers["X-Total-Count"] = total.ToString();
             return items;
         }
@@ -96,7 +97,7 @@ namespace BitsBlog.WebApi.Controllers
         {
             if (id <= 0) return BadRequest();
             // Authorize: only author or admin can update
-            var existing = await _service.GetByIdAsync(id);
+            var existing = await _service.GetByIdAsync(id, HttpContext.RequestAborted);
             if (existing is null) return NotFound();
             var isAdmin = User?.IsInRole("Admin") == true;
             var loginId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -106,7 +107,7 @@ namespace BitsBlog.WebApi.Controllers
                     return Forbid();
             }
             var safe = _sanitizer.Sanitize(body.Content);
-            var updated = await _service.UpdateAsync(new BitsBlog.Application.DTOs.PostUpdateDto { Id = id, Title = body.Title, Content = safe });
+            var updated = await _service.UpdateAsync(new BitsBlog.Application.DTOs.PostUpdateDto { Id = id, Title = body.Title, Content = safe }, HttpContext.RequestAborted);
             if (updated is null) return NotFound();
             return Ok(updated);
         }

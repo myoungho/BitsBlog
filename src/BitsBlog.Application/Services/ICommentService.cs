@@ -6,12 +6,12 @@ namespace BitsBlog.Application.Services
 {
     public interface ICommentService
     {
-        Task<IEnumerable<CommentDto>> GetCommentsByPostIdAsync(int postId);
-        Task<IReadOnlyList<CommentDto>> GetPagedAsync(BitsBlog.Application.DTOs.CommentQueryDto query);
-        Task<int> CountAsync(BitsBlog.Application.DTOs.CommentQueryDto query);
-        Task<CommentDto> CreateAsync(BitsBlog.Application.DTOs.CommentCreateDto dto);
-        Task<CommentDto?> GetByIdAsync(int id);
-        Task<CommentDto?> UpdateAsync(BitsBlog.Application.DTOs.CommentUpdateDto dto);
-        Task<bool> DeleteAsync(int id);
+        Task<IEnumerable<CommentDto>> GetCommentsByPostIdAsync(int postId, System.Threading.CancellationToken ct = default);
+        Task<IReadOnlyList<CommentDto>> GetPagedAsync(BitsBlog.Application.DTOs.CommentQueryDto query, System.Threading.CancellationToken ct = default);
+        Task<int> CountAsync(BitsBlog.Application.DTOs.CommentQueryDto query, System.Threading.CancellationToken ct = default);
+        Task<CommentDto> CreateAsync(BitsBlog.Application.DTOs.CommentCreateDto dto, System.Threading.CancellationToken ct = default);
+        Task<CommentDto?> GetByIdAsync(int id, System.Threading.CancellationToken ct = default);
+        Task<CommentDto?> UpdateAsync(BitsBlog.Application.DTOs.CommentUpdateDto dto, System.Threading.CancellationToken ct = default);
+        Task<bool> DeleteAsync(int id, System.Threading.CancellationToken ct = default);
     }
 }
