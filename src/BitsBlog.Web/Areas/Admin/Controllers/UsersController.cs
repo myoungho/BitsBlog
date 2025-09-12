@@ -76,6 +76,47 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(string email, string password, string? displayName, string role = "User")
+        {
+            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+            {
+                TempData["Error"] = "Email and password are required.";
+                return RedirectToAction(nameof(Index));
+            }
+            var client = Api();
+            // Register user via Auth API
+            var regRes = await client.PostAsJsonAsync("auth/register", new RegisterDto { Email = email, Password = password, DisplayName = displayName });
+            if (!regRes.IsSuccessStatusCode)
+            {
+                TempData["Error"] = regRes.StatusCode == System.Net.HttpStatusCode.Conflict ? "Email already registered." : "Failed to create user.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // If role is Admin, set role
+            if (string.Equals(role, "Admin", System.StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    // Find the created user id by listing with query
+                    var searchRes = await client.GetAsync($"users?page=1&pageSize=5&q={Uri.EscapeDataString(email)}");
+                    if (searchRes.IsSuccessStatusCode)
+                    {
+                        var list = await searchRes.Content.ReadFromJsonAsync<BitsBlog.Application.DTO.Common.PagedResult<UserVm>>();
+                        var created = list?.Items?.FirstOrDefault(u => string.Equals(u.LoginId, email, System.StringComparison.OrdinalIgnoreCase));
+                        if (created is not null)
+                        {
+                            await client.PutAsJsonAsync($"users/role", new SetUserRoleDto { Id = created.Id, Role = "Admin" });
+                        }
+                    }
+                }
+                catch { /* ignore role set failure */ }
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
             var client = Api();
