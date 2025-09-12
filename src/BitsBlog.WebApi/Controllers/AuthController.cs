@@ -22,12 +22,12 @@ namespace BitsBlog.WebApi.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
+        public async Task<ActionResult<AuthResponse>> Register([FromBody] BitsBlog.Application.DTOs.RegisterDto request)
         {
             if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
                 return BadRequest("Email and password are required");
 
-            var reg = await _customers.RegisterAsync(request.Email, request.Password, request.DisplayName);
+            var reg = await _customers.RegisterAsync(request);
             if (!reg.Ok || reg.Data is null)
             {
                 if (string.Equals(reg.Error, "Email already registered", StringComparison.OrdinalIgnoreCase))
@@ -40,9 +40,9 @@ namespace BitsBlog.WebApi.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request)
+        public async Task<ActionResult<AuthResponse>> Login([FromBody] BitsBlog.Application.DTOs.LoginDto request)
         {
-            var result = await _customers.LoginAsync(request.Email, request.Password);
+            var result = await _customers.LoginAsync(request);
             if (!result.Ok || result.Data is null) return Unauthorized();
             var token = GenerateJwt(new Customer { LoginId = result.Data.LoginId, DisplayName = result.Data.DisplayName, Role = result.Data.Role });
             return Ok(new AuthResponse(token.Token, token.Expires, result.Data.Role, result.Data.DisplayName));
@@ -53,7 +53,7 @@ namespace BitsBlog.WebApi.Controllers
         public async Task<ActionResult<object>> Me()
         {
             var email = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-            var profile = await _customers.GetProfileAsync(email);
+            var profile = await _customers.GetProfileAsync(new BitsBlog.Application.DTOs.ProfileQueryDto { LoginId = email });
             if (profile is null) return NotFound();
             return Ok(new { profile.LoginId, profile.DisplayName, profile.Role, profile.Created });
         }
@@ -82,20 +82,17 @@ namespace BitsBlog.WebApi.Controllers
 
         // Password hashing/verification moved into CustomerService
 
-        public record RegisterRequest(string Email, string Password, string? DisplayName);
-        public record LoginRequest(string Email, string Password);
         public record AuthResponse(string AccessToken, DateTime Expires, string Role, string DisplayName);
-
-        public record UpdateProfileRequest(string DisplayName);
 
         [Authorize]
         [HttpPut("profile")]
-        public async Task<ActionResult<AuthResponse>> UpdateProfile([FromBody] UpdateProfileRequest request)
+        public async Task<ActionResult<AuthResponse>> UpdateProfile([FromBody] BitsBlog.Application.DTOs.UpdateProfileDto request)
         {
             var loginId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-            var up = await _customers.UpdateDisplayNameAsync(loginId, request.DisplayName ?? string.Empty);
+            request.LoginId = loginId;
+            var up = await _customers.UpdateDisplayNameAsync(request);
             if (!up.Ok) return BadRequest(up.Error ?? "Update failed");
-            var me = await _customers.GetProfileAsync(loginId);
+            var me = await _customers.GetProfileAsync(new BitsBlog.Application.DTOs.ProfileQueryDto { LoginId = loginId });
             if (me is null) return Unauthorized();
             var token = GenerateJwt(new Customer
             {
@@ -106,14 +103,13 @@ namespace BitsBlog.WebApi.Controllers
             return Ok(new AuthResponse(token.Token, token.Expires, me.Role, me.DisplayName));
         }
 
-        public record ChangePasswordRequest(string CurrentPassword, string NewPassword);
-
         [Authorize]
         [HttpPut("password")]
-        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+        public async Task<IActionResult> ChangePassword([FromBody] BitsBlog.Application.DTOs.ChangePasswordDto request)
         {
             var loginId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-            var cp = await _customers.ChangePasswordAsync(loginId, request.CurrentPassword ?? string.Empty, request.NewPassword ?? string.Empty);
+            request.LoginId = loginId;
+            var cp = await _customers.ChangePasswordAsync(request);
             if (!cp.Ok)
             {
                 if (string.Equals(cp.Error, "Invalid current password", StringComparison.OrdinalIgnoreCase))

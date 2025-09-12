@@ -17,7 +17,6 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
         private HttpClient Api() => _clientFactory.CreateClient("api");
 
         public record UserVm(int Id, string LoginId, string DisplayName, string Role, System.DateTime Created);
-        public record SetRoleRequest(string Role);
 
         public async Task<IActionResult> Index(int page = 1, int pageSize = 10, string? q = null, string? sort = null)
         {
@@ -40,7 +39,7 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
         public async Task<IActionResult> Promote(int id)
         {
             var client = Api();
-            var res = await client.PutAsJsonAsync($"users/{id}/role", new SetRoleRequest("Admin"));
+            var res = await client.PutAsJsonAsync($"users/{id}/role", new BitsBlog.Application.DTOs.SetUserRoleDto { Role = "Admin" });
             if (!res.IsSuccessStatusCode) TempData["Error"] = "역할 변경 실패";
             return RedirectToAction(nameof(Index));
         }
@@ -50,7 +49,7 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
         public async Task<IActionResult> Demote(int id)
         {
             var client = Api();
-            var res = await client.PutAsJsonAsync($"users/{id}/role", new SetRoleRequest("User"));
+            var res = await client.PutAsJsonAsync($"users/{id}/role", new BitsBlog.Application.DTOs.SetUserRoleDto { Role = "User" });
             if (!res.IsSuccessStatusCode) TempData["Error"] = "역할 변경 실패";
             return RedirectToAction(nameof(Index));
         }

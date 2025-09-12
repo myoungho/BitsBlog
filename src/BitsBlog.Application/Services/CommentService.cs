@@ -29,15 +29,17 @@ namespace BitsBlog.Application.Services
             });
         }
 
-        public async Task<IReadOnlyList<CommentDto>> GetCommentsByPostIdPagedAsync(int postId, int skip, int take, string? q = null, string? sort = null)
+        public async Task<IReadOnlyList<CommentDto>> GetPagedAsync(BitsBlog.Application.DTOs.CommentQueryDto queryDto)
         {
-            var query = _repository.AsNoTracking().Where(c => c.PostId == postId);
-            if (!string.IsNullOrWhiteSpace(q))
+            var skip = (queryDto.Page - 1) * queryDto.PageSize; if (skip < 0) skip = 0;
+            var take = queryDto.PageSize <= 0 ? 10 : queryDto.PageSize;
+            var query = _repository.AsNoTracking().Where(c => c.PostId == queryDto.PostId);
+            if (!string.IsNullOrWhiteSpace(queryDto.Q))
             {
-                var term = q.Trim();
+                var term = queryDto.Q.Trim();
                 query = query.Where(c => EF.Functions.Like(c.Content, "%" + term + "%") || EF.Functions.Like(c.AuthorDisplayName!, "%" + term + "%"));
             }
-            if (string.Equals(sort, "created_asc", System.StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(queryDto.Sort, "created_asc", System.StringComparison.OrdinalIgnoreCase))
                 query = query.OrderBy(c => c.Created);
             else
                 query = query.OrderByDescending(c => c.Created);
@@ -54,20 +56,20 @@ namespace BitsBlog.Application.Services
             return await sel.ToListAsync();
         }
 
-        public Task<int> CountByPostIdAsync(int postId, string? q = null)
+        public Task<int> CountAsync(BitsBlog.Application.DTOs.CommentQueryDto queryDto)
         {
-            var query = _repository.AsNoTracking().Where(c => c.PostId == postId);
-            if (!string.IsNullOrWhiteSpace(q))
+            var query = _repository.AsNoTracking().Where(c => c.PostId == queryDto.PostId);
+            if (!string.IsNullOrWhiteSpace(queryDto.Q))
             {
-                var term = q.Trim();
+                var term = queryDto.Q.Trim();
                 query = query.Where(c => EF.Functions.Like(c.Content, "%" + term + "%") || EF.Functions.Like(c.AuthorDisplayName!, "%" + term + "%"));
             }
             return query.CountAsync();
         }
 
-        public async Task<CommentDto> CreateAsync(int postId, string content, string? authorLoginId = null, string? authorDisplayName = null, int? customerId = null)
+        public async Task<CommentDto> CreateAsync(BitsBlog.Application.DTOs.CommentCreateDto dto)
         {
-            var comment = new Comment { PostId = postId, Content = content, AuthorLoginId = authorLoginId, AuthorDisplayName = authorDisplayName, CustomerId = customerId };
+            var comment = new Comment { PostId = dto.PostId, Content = dto.Content, AuthorLoginId = dto.AuthorLoginId, AuthorDisplayName = dto.AuthorDisplayName, CustomerId = dto.CustomerId };
             var created = await _repository.InsertAsync(comment);
             await _repository.SaveDbContextChangesAsync();
             return new CommentDto(created.Id, created.PostId, created.Content, created.Created)
@@ -90,11 +92,11 @@ namespace BitsBlog.Application.Services
             };
         }
 
-        public async Task<CommentDto?> UpdateAsync(int id, string content)
+        public async Task<CommentDto?> UpdateAsync(BitsBlog.Application.DTOs.CommentUpdateDto dto)
         {
-            var c = await _repository.GetByIdAsync(id);
+            var c = await _repository.GetByIdAsync(dto.CommentId);
             if (c is null) return null;
-            c.Content = content;
+            c.Content = dto.Content;
             await _repository.UpdateAsync(c);
             await _repository.SaveDbContextChangesAsync();
             return new CommentDto(c.Id, c.PostId, c.Content, c.Created)

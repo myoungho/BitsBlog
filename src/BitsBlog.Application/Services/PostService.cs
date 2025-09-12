@@ -28,15 +28,17 @@ namespace BitsBlog.Application.Services
             });
         }
 
-        public async Task<IReadOnlyList<PostDto>> GetPostsPagedAsync(int skip, int take, string? q = null, string? sort = null)
+        public async Task<IReadOnlyList<PostDto>> GetPagedAsync(BitsBlog.Application.DTOs.PostQueryDto queryDto)
         {
+            var skip = (queryDto.Page - 1) * queryDto.PageSize;
+            if (skip < 0) skip = 0; var take = queryDto.PageSize <= 0 ? 10 : queryDto.PageSize;
             var query = _repository.AsNoTracking();
-            if (!string.IsNullOrWhiteSpace(q))
+            if (!string.IsNullOrWhiteSpace(queryDto.Q))
             {
-                var term = q.Trim();
+                var term = queryDto.Q.Trim();
                 query = query.Where(p => EF.Functions.Like(p.Title, "%" + term + "%") || EF.Functions.Like(p.Content, "%" + term + "%"));
             }
-            if (string.Equals(sort, "created_asc", System.StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(queryDto.Sort, "created_asc", System.StringComparison.OrdinalIgnoreCase))
                 query = query.OrderBy(p => p.Created);
             else
                 query = query.OrderByDescending(p => p.Created);
@@ -53,20 +55,20 @@ namespace BitsBlog.Application.Services
             return await sel.ToListAsync();
         }
 
-        public Task<int> CountAsync(string? q = null)
+        public Task<int> CountAsync(BitsBlog.Application.DTOs.PostQueryDto queryDto)
         {
             var query = _repository.AsNoTracking();
-            if (!string.IsNullOrWhiteSpace(q))
+            if (!string.IsNullOrWhiteSpace(queryDto.Q))
             {
-                var term = q.Trim();
+                var term = queryDto.Q.Trim();
                 query = query.Where(p => EF.Functions.Like(p.Title, "%" + term + "%") || EF.Functions.Like(p.Content, "%" + term + "%"));
             }
             return query.CountAsync();
         }
 
-        public async Task<PostDto> CreateAsync(string title, string content, string? authorLoginId = null, string? authorDisplayName = null, int? customerId = null)
+        public async Task<PostDto> CreateAsync(BitsBlog.Application.DTOs.PostCreateDto dto)
         {
-            var post = await _repository.InsertAsync(new Post { Title = title, Content = content, AuthorLoginId = authorLoginId, AuthorDisplayName = authorDisplayName, CustomerId = customerId });
+            var post = await _repository.InsertAsync(new Post { Title = dto.Title, Content = dto.Content, AuthorLoginId = dto.AuthorLoginId, AuthorDisplayName = dto.AuthorDisplayName, CustomerId = dto.CustomerId });
             await _repository.SaveDbContextChangesAsync();
             return new PostDto(post.Id, post.Title, post.Content, post.Created)
             {
@@ -88,12 +90,12 @@ namespace BitsBlog.Application.Services
             };
         }
 
-        public async Task<PostDto?> UpdateAsync(int id, string title, string content)
+        public async Task<PostDto?> UpdateAsync(BitsBlog.Application.DTOs.PostUpdateDto dto)
         {
-            var post = await _repository.GetByIdAsync(id);
+            var post = await _repository.GetByIdAsync(dto.Id);
             if (post is null) return null;
-            post.Title = title;
-            post.Content = content;
+            post.Title = dto.Title;
+            post.Content = dto.Content;
             await _repository.UpdateAsync(post);
             await _repository.SaveDbContextChangesAsync();
             return new PostDto(post.Id, post.Title, post.Content, post.Created)

@@ -108,6 +108,6 @@ static async Task SeedAdminAsync(ICustomerService customers, IConfiguration conf
     var displayName = config["AdminSeed:DisplayName"] ?? "Admin";
     if (string.IsNullOrWhiteSpace(adminEmail) || string.IsNullOrWhiteSpace(adminPassword)) return;
 
-    await customers.EnsureAdminAsync(adminEmail, adminPassword, displayName);
+    await customers.EnsureAdminAsync(new BitsBlog.Application.DTOs.AdminSeedDto { Email = adminEmail, Password = adminPassword!, DisplayName = displayName });
 }
 

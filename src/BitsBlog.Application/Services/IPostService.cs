@@ -7,11 +7,11 @@ namespace BitsBlog.Application.Services
     public interface IPostService
     {
         Task<IEnumerable<PostDto>> GetPostsAsync();
-        Task<IReadOnlyList<PostDto>> GetPostsPagedAsync(int skip, int take, string? q = null, string? sort = null);
-        Task<int> CountAsync(string? q = null);
-        Task<PostDto> CreateAsync(string title, string content, string? authorLoginId = null, string? authorDisplayName = null, int? customerId = null);
+        Task<IReadOnlyList<PostDto>> GetPagedAsync(BitsBlog.Application.DTOs.PostQueryDto query);
+        Task<int> CountAsync(BitsBlog.Application.DTOs.PostQueryDto query);
+        Task<PostDto> CreateAsync(BitsBlog.Application.DTOs.PostCreateDto dto);
         Task<PostDto?> GetByIdAsync(int id);
-        Task<PostDto?> UpdateAsync(int id, string title, string content);
+        Task<PostDto?> UpdateAsync(BitsBlog.Application.DTOs.PostUpdateDto dto);
         Task<bool> DeleteAsync(int id);
     }
 }

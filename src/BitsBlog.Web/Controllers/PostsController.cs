@@ -47,7 +47,7 @@ namespace BitsBlog.Web.Controllers
         {
             if (!ModelState.IsValid) return View(model);
             var client = _clientFactory.CreateClient("api");
-            await client.PostAsJsonAsync("posts", new { model.Title, model.Content });
+            await client.PostAsJsonAsync("posts", new BitsBlog.Application.DTOs.PostCreateDto { Title = model.Title, Content = model.Content });
             return RedirectToAction("Index", "Home");
         }
 
@@ -98,7 +98,7 @@ namespace BitsBlog.Web.Controllers
         {
             if (!ModelState.IsValid) return View(model);
             var client = _clientFactory.CreateClient("api");
-            var res = await client.PutAsJsonAsync($"posts/{model.Id}", new { model.Title, model.Content });
+            var res = await client.PutAsJsonAsync($"posts/{model.Id}", new BitsBlog.Application.DTOs.PostUpdateDto { Id = model.Id, Title = model.Title, Content = model.Content });
             if (res.StatusCode == System.Net.HttpStatusCode.NotFound)
                 return NotFound();
             res.EnsureSuccessStatusCode();
@@ -133,7 +133,7 @@ namespace BitsBlog.Web.Controllers
                 return RedirectToAction("Details", new { id = postId });
             }
             var client = _clientFactory.CreateClient("api");
-            var res = await client.PostAsJsonAsync($"posts/{postId}/comments", new { content });
+            var res = await client.PostAsJsonAsync($"posts/{postId}/comments", new BitsBlog.Application.DTOs.CommentCreateDto { PostId = postId, Content = content });
             // 성공/실패 무관히 상세로 복귀
             return RedirectToAction("Details", new { id = postId });
         }
@@ -147,7 +147,7 @@ namespace BitsBlog.Web.Controllers
             if (string.IsNullOrEmpty(token))
                 return RedirectToAction("Login", "Account", new { returnUrl = $"/Posts/Details/{postId}" });
             var client = _clientFactory.CreateClient("api");
-            await client.PutAsJsonAsync($"posts/{postId}/comments/{commentId}", new { content });
+            await client.PutAsJsonAsync($"posts/{postId}/comments/{commentId}", new BitsBlog.Application.DTOs.CommentUpdateDto { CommentId = commentId, Content = content });
             return RedirectToAction("Details", new { id = postId });
         }
 

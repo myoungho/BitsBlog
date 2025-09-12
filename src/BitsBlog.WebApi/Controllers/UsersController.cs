@@ -17,14 +17,13 @@ namespace BitsBlog.WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? q = null, [FromQuery] string? sort = null)
+        public async Task<IActionResult> Get([FromQuery] BitsBlog.Application.DTOs.UserQueryDto query)
         {
-            if (page < 1) page = 1;
-            if (pageSize < 1) pageSize = 10;
-            if (pageSize > 100) pageSize = 100;
-            var skip = (page - 1) * pageSize;
-            var total = await _customers.CountUsersAsync(q);
-            var list = await _customers.ListUsersAsync(skip, pageSize, q, sort);
+            if (query.Page < 1) query.Page = 1;
+            if (query.PageSize < 1) query.PageSize = 10;
+            if (query.PageSize > 100) query.PageSize = 100;
+            var total = await _customers.CountUsersAsync(query);
+            var list = await _customers.ListUsersAsync(query);
             Response.Headers["X-Total-Count"] = total.ToString();
             return Ok(list);
         }
@@ -36,10 +35,8 @@ namespace BitsBlog.WebApi.Controllers
             return user is null ? NotFound() : Ok(user);
         }
 
-        public record SetRoleRequest([Required] string Role);
-
         [HttpPut("{id:int}/role")]
-        public async Task<IActionResult> SetRole(int id, [FromBody] SetRoleRequest req)
+        public async Task<IActionResult> SetRole(int id, [FromBody] BitsBlog.Application.DTOs.SetUserRoleDto req)
         {
             if (string.IsNullOrWhiteSpace(req.Role)) return BadRequest();
             var ok = await _customers.SetRoleAsync(id, req.Role);

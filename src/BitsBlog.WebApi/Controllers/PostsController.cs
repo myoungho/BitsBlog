@@ -21,16 +21,32 @@ namespace BitsBlog.WebApi.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<IEnumerable<PostDto>> Get([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? q = null, [FromQuery] string? sort = null)
+        public async Task<IEnumerable<PostDto>> Get([FromQuery] BitsBlog.Application.DTOs.PostQueryDto query)
         {
-            if (page < 1) page = 1;
-            if (pageSize < 1) pageSize = 10;
-            if (pageSize > 100) pageSize = 100;
-            var skip = (page - 1) * pageSize;
-            var total = await _service.CountAsync(q);
-            var items = await _service.GetPostsPagedAsync(skip, pageSize, q, sort);
+            if (query.Page < 1) query.Page = 1;
+            if (query.PageSize < 1) query.PageSize = 10;
+            if (query.PageSize > 100) query.PageSize = 100;
+            var total = await _service.CountAsync(query);
+            var items = await _service.GetPagedAsync(query);
             Response.Headers["X-Total-Count"] = total.ToString();
             return items;
+        }
+
+        // Backward-compatible overload for tests invoking method directly
+        // Not an action (no attributes)
+        public async Task<IEnumerable<PostDto>> Get(int page, int pageSize, string? q, string? sort)
+        {
+            var query = new BitsBlog.Application.DTOs.PostQueryDto { Page = page, PageSize = pageSize, Q = q, Sort = sort };
+            var total = await _service.CountAsync(query);
+            var items = await _service.GetPagedAsync(query);
+            Response.Headers["X-Total-Count"] = total.ToString();
+            return items;
+        }
+
+        // Parameterless overload for tests
+        public Task<IEnumerable<PostDto>> Get()
+        {
+            return Get(new BitsBlog.Application.DTOs.PostQueryDto());
         }
 
         [AllowAnonymous]
@@ -44,21 +60,28 @@ namespace BitsBlog.WebApi.Controllers
 
         [Authorize(Roles = "User,Admin")]
         [HttpPost]
-        public async Task<ActionResult<PostDto>> Post([FromBody] CreatePostRequest request)
+        public async Task<ActionResult<PostDto>> Post([FromBody] BitsBlog.Application.DTOs.PostCreateDto body)
         {
-            var safe = _sanitizer.Sanitize(request.Content);
+            var safe = _sanitizer.Sanitize(body.Content);
             var loginId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             var displayName = User?.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
             int? customerId = null;
             var cid = User?.FindFirst("cid")?.Value;
             if (int.TryParse(cid, out var parsed)) customerId = parsed;
-            var post = await _service.CreateAsync(request.Title, safe, loginId, displayName, customerId);
+            var dto = new BitsBlog.Application.DTOs.PostCreateDto { Title = body.Title, Content = safe, AuthorLoginId = loginId, AuthorDisplayName = displayName, CustomerId = customerId };
+            var post = await _service.CreateAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = post.Id }, post);
+        }
+
+        // Non-action wrapper for tests using old request type
+        public Task<ActionResult<PostDto>> Post(CreatePostRequest req)
+        {
+            return Post(new BitsBlog.Application.DTOs.PostCreateDto { Title = req.Title, Content = req.Content });
         }
 
         [Authorize(Roles = "User,Admin")]
         [HttpPut("{id}")]
-        public async Task<ActionResult<PostDto>> Put(int id, [FromBody] UpdatePostRequest request)
+        public async Task<ActionResult<PostDto>> Put(int id, [FromBody] BitsBlog.Application.DTOs.PostUpdateDto body)
         {
             if (id <= 0) return BadRequest();
             // Authorize: only author or admin can update
@@ -71,10 +94,16 @@ namespace BitsBlog.WebApi.Controllers
                 if (!string.Equals(existing.AuthorLoginId, loginId, System.StringComparison.OrdinalIgnoreCase))
                     return Forbid();
             }
-            var safe = _sanitizer.Sanitize(request.Content);
-            var updated = await _service.UpdateAsync(id, request.Title, safe);
+            var safe = _sanitizer.Sanitize(body.Content);
+            var updated = await _service.UpdateAsync(new BitsBlog.Application.DTOs.PostUpdateDto { Id = id, Title = body.Title, Content = safe });
             if (updated is null) return NotFound();
             return Ok(updated);
+        }
+
+        // Non-action wrapper for tests using old request type
+        public Task<ActionResult<PostDto>> Put(int id, UpdatePostRequest req)
+        {
+            return Put(id, new BitsBlog.Application.DTOs.PostUpdateDto { Id = id, Title = req.Title, Content = req.Content });
         }
 
         [Authorize(Roles = "User,Admin")]
@@ -97,6 +126,7 @@ namespace BitsBlog.WebApi.Controllers
             return NoContent();
         }
 
+        // Backward-compatible request records for tests
         public record CreatePostRequest(string Title, string Content);
         public record UpdatePostRequest(string Title, string Content);
     }
