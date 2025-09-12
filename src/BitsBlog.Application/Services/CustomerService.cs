@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -92,45 +92,28 @@ namespace BitsBlog.Application.Services
 
         public async Task<BitsBlog.Application.DTO.Common.PagedResult<BitsBlog.Application.DTO.UserDto>> ListUsersAsync(BitsBlog.Application.DTO.UserQueryDto queryParams, System.Threading.CancellationToken ct = default)
         {
-            // pageSize 가드(기존 로직 준수)
             var pageSize = queryParams.PageSize;
             if (pageSize <= 0) pageSize = 100;
             if (pageSize > 500) pageSize = 500;
 
             var q = _repo.AsNoTracking();
-            if (!string.IsNullOrWhiteSpace(queryParams.Q))
-            {
-                var term = queryParams.Q.Trim();
-                q = q.Where(c => EF.Functions.Like(c.LoginId, "%" + term + "%") || EF.Functions.Like(c.DisplayName, "%" + term + "%"));
-            }
 
-            var projected = q.Select(c => new BitsBlog.Application.DTO.UserDto(c.Id, c.LoginId, c.DisplayName, c.Role, c.Created));
 
-            string defaultSort = nameof(BitsBlog.Application.DTO.UserDto.Created);
-            string? sortBy = null;
-            string? sortOrder = null;
-            if (!string.IsNullOrWhiteSpace(queryParams.Sort))
-            {
-                var s = queryParams.Sort.Trim();
-                if (s.EndsWith("_asc", System.StringComparison.OrdinalIgnoreCase)) sortOrder = "asc";
-                else if (s.EndsWith("_desc", System.StringComparison.OrdinalIgnoreCase)) sortOrder = "desc";
+            // Sort and page at entity level
+            var sort = (queryParams.Sort ?? string.Empty).Trim().ToLowerInvariant();
+            bool desc = sort.EndsWith("_desc");
+            if (sort.StartsWith("created"))
+                q = desc ? q.OrderByDescending(c => c.Created) : q.OrderBy(c => c.Created);
+            else if (sort.StartsWith("login"))
+                q = desc ? q.OrderByDescending(c => c.LoginId) : q.OrderBy(c => c.LoginId);
+            else if (sort.StartsWith("name"))
+                q = desc ? q.OrderByDescending(c => c.DisplayName) : q.OrderBy(c => c.DisplayName);
+            else
+                q = q.OrderBy(c => c.Id);
 
-                if (s.StartsWith("created", System.StringComparison.OrdinalIgnoreCase)) sortBy = nameof(BitsBlog.Application.DTO.UserDto.Created);
-                else if (s.StartsWith("login", System.StringComparison.OrdinalIgnoreCase)) sortBy = nameof(BitsBlog.Application.DTO.UserDto.LoginId);
-                else if (s.StartsWith("name", System.StringComparison.OrdinalIgnoreCase)) sortBy = nameof(BitsBlog.Application.DTO.UserDto.DisplayName);
-            }
+            var page = queryParams.Page <= 0 ? 1 : queryParams.Page; var total = await q.CountAsync(ct);
 
-            var paged = await RepositoryPagingExtensions.PagedAsync<Customer, BitsBlog.Application.DTO.UserDto>(
-                _repo,
-                projected,
-                sortBy,
-                sortOrder,
-                defaultSort,
-                queryParams.Page,
-                pageSize,
-                strict: true);
-
-            return paged;
+            return await _repo.PagedAsync<Customer, BitsBlog.Application.DTO.UserDto>(q.Select(c => new BitsBlog.Application.DTO.UserDto(c.Id, c.LoginId, c.DisplayName, c.Role, c.Created)), page, pageSize);
         }
 
         public async Task<BitsBlog.Application.DTO.UserDto?> GetUserByIdAsync(int id, System.Threading.CancellationToken ct = default)
@@ -152,11 +135,7 @@ namespace BitsBlog.Application.Services
         public Task<int> CountUsersAsync(BitsBlog.Application.DTO.UserQueryDto queryParams, System.Threading.CancellationToken ct = default)
         {
             var query = _repo.AsNoTracking();
-            if (!string.IsNullOrWhiteSpace(queryParams.Q))
-            {
-                var term = queryParams.Q.Trim();
-                query = query.Where(c => EF.Functions.Like(c.LoginId, "%" + term + "%") || EF.Functions.Like(c.DisplayName, "%" + term + "%"));
-            }
+
             return query.CountAsync(ct);
         }
 
@@ -244,3 +223,4 @@ namespace BitsBlog.Application.Services
         }
     }
 }
+

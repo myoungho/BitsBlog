@@ -30,41 +30,14 @@ namespace BitsBlog.Application.Services
         public async Task<BitsBlog.Application.DTO.Common.PagedResult<PostDto>> GetPagedAsync(BitsBlog.Application.DTO.PostQueryDto queryDto, System.Threading.CancellationToken ct = default)
         {
             var q = _repository.AsNoTracking();
-            if (!string.IsNullOrWhiteSpace(queryDto.Q))
-            {
-                var term = queryDto.Q.Trim();
-                q = q.Where(p => EF.Functions.Like(p.Title, "%" + term + "%") || EF.Functions.Like(p.Content, "%" + term + "%"));
-            }
+            // No search; simple paging only
 
-            var projected = q.Select(p => new PostDto(p.Id, p.Title, p.Content, p.Created)
-            {
-                AuthorLoginId = p.AuthorLoginId,
-                AuthorDisplayName = p.AuthorDisplayName,
-                CustomerId = p.CustomerId
-            });
+            var projected = q.Select(p => new PostDto(p.Id, p.Title, p.Content, p.Created));
 
-            string defaultSort = nameof(PostDto.Created);
-            string? sortBy = null;
-            string? sortOrder = null;
-            if (!string.IsNullOrWhiteSpace(queryDto.Sort))
-            {
-                var s = queryDto.Sort.Trim();
-                if (s.EndsWith("_asc", System.StringComparison.OrdinalIgnoreCase)) sortOrder = "asc";
-                else if (s.EndsWith("_desc", System.StringComparison.OrdinalIgnoreCase)) sortOrder = "desc";
-                if (s.StartsWith("created", System.StringComparison.OrdinalIgnoreCase)) sortBy = nameof(PostDto.Created);
-            }
-
-            var paged = await RepositoryPagingExtensions.PagedAsync<Post, PostDto>(
-                _repository,
+            return await _repository.PagedAsync<Post, PostDto>(
                 projected,
-                sortBy,
-                sortOrder,
-                defaultSort,
                 queryDto.Page,
-                queryDto.PageSize,
-                strict: true);
-
-            return paged;
+                queryDto.PageSize);
         }
 
         public Task<int> CountAsync(BitsBlog.Application.DTO.PostQueryDto queryDto, System.Threading.CancellationToken ct = default)

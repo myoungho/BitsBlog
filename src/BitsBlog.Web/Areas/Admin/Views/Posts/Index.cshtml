@@ -1,34 +1,17 @@
-﻿@model BitsBlog.Web.Models.PagedResult<BitsBlog.Web.Areas.Admin.Controllers.PostsController.PostVm>
+﻿@model BitsBlog.Application.DTO.Common.PagedResult<BitsBlog.Web.Areas.Admin.Controllers.PostsController.PostVm>
 @{
     ViewData["Title"] = "Posts";
 }
-@await Html.PartialAsync("~/Areas/Admin/Views/Shared/_AdminNav.cshtml")
+
+@if (ViewData["Error"] is string err && !string.IsNullOrWhiteSpace(err)) {<div class="alert alert-danger">@err</div>}
 @{
   var totalPages = (int)Math.Ceiling((double)Model.Total / Math.Max(1, Model.PageSize));
-  var q = ViewData["q"] as string;
-  var sort = ViewData["sort"] as string;
 }
-@if (TempData["Error"] is string err) {<div class="alert alert-danger">@err</div>}
+@if (TempData["Error"] is string tempErr) {<div class="alert alert-danger">@tempErr</div>}
 
 <div class="card shadow-sm">
   <div class="card-body">
-        <form method="get" class="row g-2 align-items-end mb-3">
-      <div class="col-md-6">
-        <label class="form-label" for="q">Search</label>
-        <input class="form-control" type="text" id="q" name="q" value="@q" placeholder="Title/Content" />
-      </div>
-      <div class="col-md-3">
-        <label class="form-label" for="sort">Sort</label>
-        <select class="form-select" id="sort" name="sort">
-          @if (string.IsNullOrEmpty(sort)) {<option value="" selected="selected">Default</option>} else {<option value="">Default</option>}
-          @if (string.Equals(sort,"created_asc")) {<option value="created_asc" selected="selected">Oldest first</option>} else {<option value="created_asc">Oldest first</option>}
-        </select>
-      </div>
-      <div class="col-md-3">
-        <label class="form-label d-block">&nbsp;</label>
-        <button type="submit" class="btn btn-outline-primary">Search</button>
-      </div>
-    </form>
+    
     <div class="d-flex align-items-center justify-content-between mb-3">
       <h5 class="card-title mb-0">Posts</h5>
       <span class="text-body-secondary">Total @Model.Total items</span>
@@ -63,8 +46,10 @@
         </tbody>
       </table>
     </div>
-    @await Html.PartialAsync("~/Views/Shared/_Pagination.cshtml", new BitsBlog.Web.Models.PaginationModel { Area = "Admin", Controller = "Posts", Action = "Index", Page = Model.Page, PageSize = Model.PageSize, Total = Model.Total, ExtraRouteValues = new System.Collections.Generic.Dictionary<string, object?> { ["q"] = q, ["sort"] = sort } })
+    @await Html.PartialAsync("~/Views/Shared/_Pagination.cshtml", new BitsBlog.Web.Models.PaginationModel { Area = "Admin", Controller = "Posts", Action = "Index", Page = Model.Page, PageSize = Model.PageSize, Total = Model.Total })
   </div>
 </div>
+
+
 
 

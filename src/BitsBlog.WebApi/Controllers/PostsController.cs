@@ -88,6 +88,19 @@ namespace BitsBlog.WebApi.Controllers
             return Ok(updated);
         }
 
+        /// <summary>Update post (id in route) - compatibility overload for tests</summary>
+        [Authorize(Roles = "User,Admin")]
+        [HttpPut("{id}")]
+        [Consumes("application/json")]
+        [ProducesResponseType(typeof(PostDto), 200)]
+        [ProducesResponseType(404)]
+        public async Task<ActionResult<PostDto>> Put(int id, [FromBody] BitsBlog.Application.DTO.PostUpdateDto body)
+        {
+            if (body is null) return BadRequest();
+            body = new BitsBlog.Application.DTO.PostUpdateDto { Id = id, Title = body.Title, Content = body.Content };
+            return await Put(body);
+        }
+
         /// <summary>Delete post</summary>
         [Authorize(Roles = "User,Admin")]
         [HttpDelete("{id}")]

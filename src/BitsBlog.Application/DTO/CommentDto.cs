@@ -2,7 +2,7 @@ using System;
 
 namespace BitsBlog.Application.DTO
 {
-    public class CommentDto : IEquatable<CommentDto>
+    public class CommentDto
     {
         public int Id { get; }
         public int PostId { get; }
@@ -19,16 +19,5 @@ namespace BitsBlog.Application.DTO
             Content = content;
             Created = created;
         }
-
-        public override bool Equals(object? obj) => Equals(obj as CommentDto);
-
-        public bool Equals(CommentDto? other)
-        {
-            if (other is null) return false;
-            if (ReferenceEquals(this, other)) return true;
-            return Id == other.Id && PostId == other.PostId && Content == other.Content && Created == other.Created;
-        }
-
-        public override int GetHashCode() => HashCode.Combine(Id, PostId, Content, Created);
     }
 }

@@ -31,9 +31,29 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
                       (string.IsNullOrWhiteSpace(q) ? string.Empty : $"&q={Uri.EscapeDataString(q)}") +
                       (string.IsNullOrWhiteSpace(sort) ? string.Empty : $"&sort={Uri.EscapeDataString(sort)}");
             var res = await Api().GetAsync(url);
-            res.EnsureSuccessStatusCode();
-            var vm = await res.Content.ReadFromJsonAsync<BitsBlog.Web.Models.PagedResult<PostVm>>()
-                     ?? new BitsBlog.Web.Models.PagedResult<PostVm>(Array.Empty<PostVm>(), page, pageSize, 0);
+            BitsBlog.Application.DTO.Common.PagedResult<PostVm> vm;
+            if (!res.IsSuccessStatusCode)
+            {
+                ViewData["Error"] = "Failed to load posts.";
+                vm = new BitsBlog.Application.DTO.Common.PagedResult<PostVm>
+                {
+                    Items = Array.Empty<PostVm>(),
+                    Page = page,
+                    PageSize = pageSize,
+                    Total = 0
+                };
+            }
+            else
+            {
+                vm = await res.Content.ReadFromJsonAsync<BitsBlog.Application.DTO.Common.PagedResult<PostVm>>()
+                     ?? new BitsBlog.Application.DTO.Common.PagedResult<PostVm>
+                     {
+                         Items = Array.Empty<PostVm>(),
+                         Page = page,
+                         PageSize = pageSize,
+                         Total = 0
+                     };
+            }
             ViewData["q"] = q; ViewData["sort"] = sort;
             return View(vm);
         }

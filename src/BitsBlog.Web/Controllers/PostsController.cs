@@ -25,9 +25,29 @@ namespace BitsBlog.Web.Controllers
                       (string.IsNullOrWhiteSpace(q) ? string.Empty : $"&q={Uri.EscapeDataString(q)}") +
                       (string.IsNullOrWhiteSpace(sort) ? string.Empty : $"&sort={Uri.EscapeDataString(sort)}");
             var res = await client.GetAsync(url);
-            res.EnsureSuccessStatusCode();
-            var vm = await res.Content.ReadFromJsonAsync<BitsBlog.Web.Models.PagedResult<PostDto>>()
-                     ?? new BitsBlog.Web.Models.PagedResult<PostDto>(Array.Empty<PostDto>(), page, pageSize, 0);
+            BitsBlog.Application.DTO.Common.PagedResult<PostDto> vm;
+            if (!res.IsSuccessStatusCode)
+            {
+                ViewData["Error"] = "Failed to load posts.";
+                vm = new BitsBlog.Application.DTO.Common.PagedResult<PostDto>
+                {
+                    Items = Array.Empty<PostDto>(),
+                    Page = page,
+                    PageSize = pageSize,
+                    Total = 0
+                };
+            }
+            else
+            {
+                vm = await res.Content.ReadFromJsonAsync<BitsBlog.Application.DTO.Common.PagedResult<PostDto>>()
+                     ?? new BitsBlog.Application.DTO.Common.PagedResult<PostDto>
+                     {
+                         Items = Array.Empty<PostDto>(),
+                         Page = page,
+                         PageSize = pageSize,
+                         Total = 0
+                     };
+            }
             ViewData["q"] = q;
             ViewData["sort"] = sort;
             return View(vm);
@@ -56,7 +76,7 @@ namespace BitsBlog.Web.Controllers
             var client = _clientFactory.CreateClient("api");
             var post = await client.GetFromJsonAsync<PostDto>($"posts/{id}");
             if (post is null) return NotFound();
-            var commentsPaged = await client.GetFromJsonAsync<BitsBlog.Web.Models.PagedResult<CommentDto>>($"comments?page=1&pageSize=100&postId={id}");
+            var commentsPaged = await client.GetFromJsonAsync<BitsBlog.Application.DTO.Common.PagedResult<CommentDto>>($"comments?page=1&pageSize=100&postId={id}");
             var vm = new PostDetailsViewModel { Post = post, Comments = commentsPaged?.Items?.ToList() ?? new List<CommentDto>() };
             var token = HttpContext.Request.Cookies["jwt"];
             if (!string.IsNullOrEmpty(token))
@@ -98,7 +118,11 @@ namespace BitsBlog.Web.Controllers
             var res = await client.PutAsJsonAsync($"posts", new PostUpdateDto { Id = model.Id, Title = model.Title, Content = model.Content });
             if (res.StatusCode == System.Net.HttpStatusCode.NotFound)
                 return NotFound();
-            res.EnsureSuccessStatusCode();
+            if (!res.IsSuccessStatusCode)
+            {
+                TempData["Error"] = "Failed to update post.";
+                return RedirectToAction("Details", new { id = model.Id });
+            }
             return RedirectToAction("Index", "Home");
         }
 
@@ -111,7 +135,11 @@ namespace BitsBlog.Web.Controllers
             var res = await client.DeleteAsync($"posts/{id}");
             if (res.StatusCode == System.Net.HttpStatusCode.NotFound)
                 return NotFound();
-            res.EnsureSuccessStatusCode();
+            if (!res.IsSuccessStatusCode)
+            {
+                TempData["Error"] = "Failed to delete post.";
+                return RedirectToAction("Details", new { id });
+            }
             return RedirectToAction("Index", "Home");
         }
 

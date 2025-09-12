@@ -1,11 +1,12 @@
-﻿@model BitsBlog.Web.Models.PagedResult<BitsBlog.Web.Areas.Admin.Controllers.CommentsController.CommentVm>
+﻿@model BitsBlog.Application.DTO.Common.PagedResult<BitsBlog.Web.Areas.Admin.Controllers.CommentsController.CommentVm>
 @{
     ViewData["Title"] = "Comments";
     var postId = ViewData["PostId"] as int?;
     var q = ViewData["q"] as string; var sort = ViewData["sort"] as string;
 }
-@await Html.PartialAsync("~/Areas/Admin/Views/Shared/_AdminNav.cshtml")
-@if (TempData["Error"] is string err) {<div class="alert alert-danger">@err</div>}
+
+@if (ViewData["Error"] is string err && !string.IsNullOrWhiteSpace(err)) {<div class="alert alert-danger">@err</div>}
+@if (TempData["Error"] is string tempErr) {<div class="alert alert-danger">@tempErr</div>}
 @{
   var totalPages = (int)Math.Ceiling((double)Model.Total / Math.Max(1, Model.PageSize));
 }
@@ -19,21 +20,7 @@
       <div class="col-auto">
         <input class="form-control" type="number" id="postId" name="postId" value="@postId" min="1" />
       </div>
-      <div class="col-md-4">
-        <input class="form-control" type="text" id="q" name="q" value="@q" placeholder="Content/Author" />
-      </div>
-      <div class="col-md-3">
-        <select class="form-select" id="sort" name="sort">
-          @if (string.IsNullOrEmpty(sort)) {<option value="" selected="selected">Default</option>} else {<option value="">Default</option>}
-          @if (string.Equals(sort,"created_asc")) {<option value="created_asc" selected="selected">Oldest first</option>} else {<option value="created_asc">Oldest first</option>}
-        </select>
-      </div>
-      <div class="col-auto">
-        <button class="btn btn-primary" type="submit">Search</button>
-      </div>
-      <div class="col-auto">
-        <a class="btn btn-outline-secondary" href="/Admin/Comments">Reset</a>
-      </div>
+      
       <div class="col-auto ms-auto text-body-secondary">Total @Model.Total</div>
     </form>
   </div>
@@ -78,10 +65,12 @@
     </div>
     @if ((ViewData["PostId"] as int?).HasValue)
     {
-      @await Html.PartialAsync("~/Views/Shared/_Pagination.cshtml", new BitsBlog.Web.Models.PaginationModel { Area = "Admin", Controller = "Comments", Action = "Index", Page = Model.Page, PageSize = Model.PageSize, Total = Model.Total, ExtraRouteValues = new System.Collections.Generic.Dictionary<string, object?> { ["postId"] = ViewData["PostId"], ["q"] = q, ["sort"] = sort } })
+      @await Html.PartialAsync("~/Views/Shared/_Pagination.cshtml", new BitsBlog.Web.Models.PaginationModel { Area = "Admin", Controller = "Comments", Action = "Index", Page = Model.Page, PageSize = Model.PageSize, Total = Model.Total, ExtraRouteValues = new System.Collections.Generic.Dictionary<string, object?> { ["postId"] = ViewData["PostId"] } })
     }
   </div>
 </div>
+
+
 
 
 

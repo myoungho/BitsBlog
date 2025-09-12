@@ -27,9 +27,29 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
                       (string.IsNullOrWhiteSpace(q) ? string.Empty : $"&q={Uri.EscapeDataString(q)}") +
                       (string.IsNullOrWhiteSpace(sort) ? string.Empty : $"&sort={Uri.EscapeDataString(sort)}");
             var res = await client.GetAsync(url);
-            res.EnsureSuccessStatusCode();
-            var vm = await res.Content.ReadFromJsonAsync<BitsBlog.Web.Models.PagedResult<UserVm>>()
-                     ?? new BitsBlog.Web.Models.PagedResult<UserVm>(Array.Empty<UserVm>(), page, pageSize, 0);
+            BitsBlog.Application.DTO.Common.PagedResult<UserVm> vm;
+            if (!res.IsSuccessStatusCode)
+            {
+                ViewData["Error"] = "Failed to load users.";
+                vm = new BitsBlog.Application.DTO.Common.PagedResult<UserVm>
+                {
+                    Items = Array.Empty<UserVm>(),
+                    Page = page,
+                    PageSize = pageSize,
+                    Total = 0
+                };
+            }
+            else
+            {
+                vm = await res.Content.ReadFromJsonAsync<BitsBlog.Application.DTO.Common.PagedResult<UserVm>>()
+                     ?? new BitsBlog.Application.DTO.Common.PagedResult<UserVm>
+                     {
+                         Items = Array.Empty<UserVm>(),
+                         Page = page,
+                         PageSize = pageSize,
+                         Total = 0
+                     };
+            }
             ViewData["q"] = q; ViewData["sort"] = sort;
             return View(vm);
         }

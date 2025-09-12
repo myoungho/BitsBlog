@@ -33,11 +33,7 @@ namespace BitsBlog.Application.Services
         public async Task<BitsBlog.Application.DTO.Common.PagedResult<CommentDto>> GetPagedAsync(BitsBlog.Application.DTO.CommentQueryDto queryDto, System.Threading.CancellationToken ct = default)
         {
             var q = _repository.AsNoTracking().Where(c => c.PostId == queryDto.PostId);
-            if (!string.IsNullOrWhiteSpace(queryDto.Q))
-            {
-                var term = queryDto.Q.Trim();
-                q = q.Where(c => EF.Functions.Like(c.Content, "%" + term + "%") || EF.Functions.Like(c.AuthorDisplayName!, "%" + term + "%"));
-            }
+            // No search; simple paging only
 
             var projected = q.Select(c => new CommentDto(c.Id, c.PostId, c.Content, c.Created)
             {
@@ -47,25 +43,13 @@ namespace BitsBlog.Application.Services
             });
 
             string defaultSort = nameof(CommentDto.Created);
-            string? sortBy = null;
-            string? sortOrder = null;
-            if (!string.IsNullOrWhiteSpace(queryDto.Sort))
-            {
-                var s = queryDto.Sort.Trim();
-                if (s.EndsWith("_asc", System.StringComparison.OrdinalIgnoreCase)) sortOrder = "asc";
-                else if (s.EndsWith("_desc", System.StringComparison.OrdinalIgnoreCase)) sortOrder = "desc";
-                if (s.StartsWith("created", System.StringComparison.OrdinalIgnoreCase)) sortBy = nameof(CommentDto.Created);
-            }
+            string? sortBy = defaultSort;
+            string? sortOrder = "desc";
 
-            var paged = await RepositoryPagingExtensions.PagedAsync<Comment, CommentDto>(
-                _repository,
+            var paged = await _repository.PagedAsync<Comment, CommentDto>(
                 projected,
-                sortBy,
-                sortOrder,
-                defaultSort,
                 queryDto.Page,
-                queryDto.PageSize,
-                strict: true);
+                queryDto.PageSize);
 
             return paged;
         }

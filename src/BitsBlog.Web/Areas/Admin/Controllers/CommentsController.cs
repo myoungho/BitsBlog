@@ -36,14 +36,34 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
                           (string.IsNullOrWhiteSpace(q) ? string.Empty : $"&q={Uri.EscapeDataString(q)}") +
                           (string.IsNullOrWhiteSpace(sort) ? string.Empty : $"&sort={Uri.EscapeDataString(sort)}");
                 var res = await Api().GetAsync(url);
-                res.EnsureSuccessStatusCode();
-                var paged = await res.Content.ReadFromJsonAsync<BitsBlog.Web.Models.PagedResult<CommentVm>>()
-                            ?? new BitsBlog.Web.Models.PagedResult<CommentVm>(Array.Empty<CommentVm>(), page, pageSize, 0);
-                items = paged.Items;
-                total = paged.Total;
+                if (!res.IsSuccessStatusCode)
+                {
+                    ViewData["Error"] = "Failed to load comments.";
+                    items = Array.Empty<CommentVm>();
+                    total = 0;
+                }
+                else
+                {
+                    var paged = await res.Content.ReadFromJsonAsync<BitsBlog.Application.DTO.Common.PagedResult<CommentVm>>()
+                                ?? new BitsBlog.Application.DTO.Common.PagedResult<CommentVm>
+                                {
+                                    Items = Array.Empty<CommentVm>(),
+                                    Page = page,
+                                    PageSize = pageSize,
+                                    Total = 0
+                                };
+                    items = paged.Items;
+                    total = paged.Total;
+                }
             }
             ViewData["PostId"] = postId;
-            var vm = new BitsBlog.Web.Models.PagedResult<CommentVm>(items, page, pageSize, total);
+            var vm = new BitsBlog.Application.DTO.Common.PagedResult<CommentVm>
+            {
+                Items = items,
+                Page = page,
+                PageSize = pageSize,
+                Total = total
+            };
             ViewData["q"] = q; ViewData["sort"] = sort;
             return View(vm);
         }
@@ -58,3 +78,4 @@ namespace BitsBlog.Web.Areas.Admin.Controllers
         }
     }
 }
+
