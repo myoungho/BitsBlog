@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading;
@@ -55,5 +56,13 @@ namespace BitsBlog.Application.Interfaces
         Task<int> SaveChangesAsync();
 
         IQueryable<T> Execute(FormattableString query);
+
+        // Transactions
+        Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken ct = default);
+        Task CommitTransactionAsync(IDbContextTransaction transaction, CancellationToken ct = default);
+        Task RollbackTransactionAsync(IDbContextTransaction transaction, CancellationToken ct = default);
+
+        Task ExecuteInTransactionAsync(Func<CancellationToken, Task> action, CancellationToken ct = default);
+        Task<TResult> ExecuteInTransactionAsync<TResult>(Func<CancellationToken, Task<TResult>> action, CancellationToken ct = default);
     }
 }

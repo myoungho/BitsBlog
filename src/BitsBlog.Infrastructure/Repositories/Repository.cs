@@ -7,6 +7,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace BitsBlog.Infrastructure.Repositories
 {
@@ -103,6 +104,56 @@ namespace BitsBlog.Infrastructure.Repositories
         public virtual EntityState GetEntityState(object entry) => _context.Entry(entry).State;
 
         public IQueryable<T> Execute(FormattableString query) => Entities.FromSqlInterpolated(query);
+
+        public async Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken ct = default)
+            => await _context.Database.BeginTransactionAsync(ct);
+
+        public async Task CommitTransactionAsync(IDbContextTransaction transaction, CancellationToken ct = default)
+        {
+            if (transaction == null) throw new ArgumentNullException(nameof(transaction));
+            await transaction.CommitAsync(ct);
+        }
+
+        public async Task RollbackTransactionAsync(IDbContextTransaction transaction, CancellationToken ct = default)
+        {
+            if (transaction == null) throw new ArgumentNullException(nameof(transaction));
+            await transaction.RollbackAsync(ct);
+        }
+
+        public async Task ExecuteInTransactionAsync(Func<CancellationToken, Task> action, CancellationToken ct = default)
+        {
+            if (action is null) throw new ArgumentNullException(nameof(action));
+            await using var tx = await BeginTransactionAsync(ct);
+            try
+            {
+                await action(ct);
+                await SaveChangesAsync(ct);
+                await CommitTransactionAsync(tx, ct);
+            }
+            catch
+            {
+                await RollbackTransactionAsync(tx, ct);
+                throw;
+            }
+        }
+
+        public async Task<TResult> ExecuteInTransactionAsync<TResult>(Func<CancellationToken, Task<TResult>> action, CancellationToken ct = default)
+        {
+            if (action is null) throw new ArgumentNullException(nameof(action));
+            await using var tx = await BeginTransactionAsync(ct);
+            try
+            {
+                var result = await action(ct);
+                await SaveChangesAsync(ct);
+                await CommitTransactionAsync(tx, ct);
+                return result;
+            }
+            catch
+            {
+                await RollbackTransactionAsync(tx, ct);
+                throw;
+            }
+        }
 
 
     }
