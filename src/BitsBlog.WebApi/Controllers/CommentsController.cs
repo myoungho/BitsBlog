@@ -18,8 +18,10 @@ namespace BitsBlog.WebApi.Controllers
             _sanitizer = sanitizer;
         }
 
+        /// <summary>코멘트 목록 조회</summary>
         [AllowAnonymous]
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<BitsBlog.Application.DTOs.CommentDto>), 200)]
         public async Task<IActionResult> Get(int postId, [FromQuery] BitsBlog.Application.DTOs.CommentQueryDto query)
         {
             if (postId <= 0) return BadRequest();
@@ -33,8 +35,11 @@ namespace BitsBlog.WebApi.Controllers
             return Ok(comments);
         }
 
+        /// <summary>코멘트 작성</summary>
         [Authorize(Roles = "User,Admin")]
         [HttpPost]
+        [Consumes("application/json")]
+        [ProducesResponseType(typeof(BitsBlog.Application.DTOs.CommentDto), 201)]
         public async Task<IActionResult> Post(int postId, [FromBody] BitsBlog.Application.DTOs.CommentCreateDto body)
         {
             var content = _sanitizer.Sanitize(body.Content ?? string.Empty);
@@ -47,8 +52,12 @@ namespace BitsBlog.WebApi.Controllers
             return Created($"/api/posts/{postId}/comments/{created.Id}", created);
         }
 
+        /// <summary>코멘트 수정</summary>
         [Authorize(Roles = "User,Admin")]
         [HttpPut("{commentId}")]
+        [Consumes("application/json")]
+        [ProducesResponseType(typeof(BitsBlog.Application.DTOs.CommentDto), 200)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> Put(int postId, int commentId, [FromBody] BitsBlog.Application.DTOs.CommentUpdateDto body)
         {
             var existing = await _service.GetByIdAsync(commentId);
@@ -62,8 +71,11 @@ namespace BitsBlog.WebApi.Controllers
             return Ok(updated);
         }
 
+        /// <summary>코멘트 삭제</summary>
         [Authorize(Roles = "User,Admin")]
         [HttpDelete("{commentId}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> Delete(int postId, int commentId)
         {
             var existing = await _service.GetByIdAsync(commentId);

@@ -19,8 +19,12 @@ namespace BitsBlog.WebApi.Controllers
             _sanitizer = sanitizer;
         }
 
+        /// <summary>게시글 목록 조회</summary>
+        /// <param name="query">페이지/검색/정렬 파라미터</param>
+        /// <returns>게시글 목록</returns>
         [AllowAnonymous]
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<PostDto>), 200)]
         public async Task<IEnumerable<PostDto>> Get([FromQuery] BitsBlog.Application.DTOs.PostQueryDto query)
         {
             if (query.Page < 1) query.Page = 1;
@@ -58,8 +62,11 @@ namespace BitsBlog.WebApi.Controllers
             return Ok(post);
         }
 
+        /// <summary>게시글 생성</summary>
         [Authorize(Roles = "User,Admin")]
         [HttpPost]
+        [Consumes("application/json")]
+        [ProducesResponseType(typeof(PostDto), 201)]
         public async Task<ActionResult<PostDto>> Post([FromBody] BitsBlog.Application.DTOs.PostCreateDto body)
         {
             var safe = _sanitizer.Sanitize(body.Content);
@@ -79,8 +86,12 @@ namespace BitsBlog.WebApi.Controllers
             return Post(new BitsBlog.Application.DTOs.PostCreateDto { Title = req.Title, Content = req.Content });
         }
 
+        /// <summary>게시글 수정</summary>
         [Authorize(Roles = "User,Admin")]
         [HttpPut("{id}")]
+        [Consumes("application/json")]
+        [ProducesResponseType(typeof(PostDto), 200)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<PostDto>> Put(int id, [FromBody] BitsBlog.Application.DTOs.PostUpdateDto body)
         {
             if (id <= 0) return BadRequest();
@@ -106,8 +117,11 @@ namespace BitsBlog.WebApi.Controllers
             return Put(id, new BitsBlog.Application.DTOs.PostUpdateDto { Id = id, Title = req.Title, Content = req.Content });
         }
 
+        /// <summary>게시글 삭제</summary>
         [Authorize(Roles = "User,Admin")]
         [HttpDelete("{id}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> Delete(int id)
         {
             if (id <= 0) return BadRequest();

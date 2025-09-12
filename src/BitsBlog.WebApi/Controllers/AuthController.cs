@@ -21,7 +21,10 @@ namespace BitsBlog.WebApi.Controllers
             _config = config;
         }
 
+        /// <summary>회원가입</summary>
         [HttpPost("register")]
+        [Consumes("application/json")]
+        [ProducesResponseType(typeof(AuthResponse), 200)]
         public async Task<ActionResult<AuthResponse>> Register([FromBody] BitsBlog.Application.DTOs.RegisterDto request)
         {
             if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
@@ -39,7 +42,11 @@ namespace BitsBlog.WebApi.Controllers
             return Ok(new AuthResponse(token.Token, token.Expires, reg.Data.Role, reg.Data.DisplayName));
         }
 
+        /// <summary>로그인</summary>
         [HttpPost("login")]
+        [Consumes("application/json")]
+        [ProducesResponseType(typeof(AuthResponse), 200)]
+        [ProducesResponseType(401)]
         public async Task<ActionResult<AuthResponse>> Login([FromBody] BitsBlog.Application.DTOs.LoginDto request)
         {
             var result = await _customers.LoginAsync(request);
@@ -48,8 +55,11 @@ namespace BitsBlog.WebApi.Controllers
             return Ok(new AuthResponse(token.Token, token.Expires, result.Data.Role, result.Data.DisplayName));
         }
 
+        /// <summary>내 프로필 조회</summary>
         [Authorize]
         [HttpGet("me")]
+        [ProducesResponseType(typeof(object), 200)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<object>> Me()
         {
             var email = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
@@ -84,8 +94,12 @@ namespace BitsBlog.WebApi.Controllers
 
         public record AuthResponse(string AccessToken, DateTime Expires, string Role, string DisplayName);
 
+        /// <summary>프로필(DisplayName) 수정</summary>
         [Authorize]
         [HttpPut("profile")]
+        [Consumes("application/json")]
+        [ProducesResponseType(typeof(AuthResponse), 200)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult<AuthResponse>> UpdateProfile([FromBody] BitsBlog.Application.DTOs.UpdateProfileDto request)
         {
             var loginId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
@@ -103,8 +117,13 @@ namespace BitsBlog.WebApi.Controllers
             return Ok(new AuthResponse(token.Token, token.Expires, me.Role, me.DisplayName));
         }
 
+        /// <summary>비밀번호 변경</summary>
         [Authorize]
         [HttpPut("password")]
+        [Consumes("application/json")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
         public async Task<IActionResult> ChangePassword([FromBody] BitsBlog.Application.DTOs.ChangePasswordDto request)
         {
             var loginId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;

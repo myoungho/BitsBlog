@@ -16,7 +16,9 @@ namespace BitsBlog.WebApi.Controllers
             _customers = customers;
         }
 
+        /// <summary>사용자 목록(관리자)</summary>
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<BitsBlog.Application.DTOs.UserDto>), 200)]
         public async Task<IActionResult> Get([FromQuery] BitsBlog.Application.DTOs.UserQueryDto query)
         {
             if (query.Page < 1) query.Page = 1;
@@ -35,7 +37,11 @@ namespace BitsBlog.WebApi.Controllers
             return user is null ? NotFound() : Ok(user);
         }
 
+        /// <summary>사용자 역할 변경</summary>
         [HttpPut("{id:int}/role")]
+        [Consumes("application/json")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> SetRole(int id, [FromBody] BitsBlog.Application.DTOs.SetUserRoleDto req)
         {
             if (string.IsNullOrWhiteSpace(req.Role)) return BadRequest();
@@ -44,7 +50,10 @@ namespace BitsBlog.WebApi.Controllers
             return NoContent();
         }
 
+        /// <summary>사용자 삭제</summary>
         [HttpDelete("{id:int}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> Delete(int id)
         {
             var ok = await _customers.DeleteUserAsync(id);
