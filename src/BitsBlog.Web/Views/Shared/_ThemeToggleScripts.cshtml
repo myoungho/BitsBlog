@@ -1,0 +1,61 @@
+<script>
+  (function(){
+    function currentTheme(){
+      return document.documentElement.getAttribute('data-bs-theme') || 'dark';
+    }
+    function setIconFor(btn, icon, theme){
+      if (!btn || !icon) return;
+      icon.classList.remove('bi-sun','bi-moon');
+      if (theme === 'dark') {
+        icon.classList.add('bi-sun');
+        btn.setAttribute('aria-label','Switch to light mode');
+        btn.title = 'Switch to light mode';
+      } else {
+        icon.classList.add('bi-moon');
+        btn.setAttribute('aria-label','Switch to dark mode');
+        btn.title = 'Switch to dark mode';
+      }
+    }
+    function applyMeta(theme){
+      var metaTheme = document.querySelector('meta[name="theme-color"]');
+      if (metaTheme) metaTheme.setAttribute('content', theme === 'dark' ? '#212529' : '#ffffff');
+    }
+    function bindToggle(btnId, iconId){
+      var btn = document.getElementById(btnId);
+      var icon = document.getElementById(iconId);
+      if (!btn || !icon) return;
+      setIconFor(btn, icon, currentTheme());
+      btn.addEventListener('click', function(){
+        var next = currentTheme() === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-bs-theme', next);
+        try { localStorage.setItem('theme', next); } catch(e) {}
+        setIconFor(btn, icon, next);
+        applyMeta(next);
+      });
+    }
+    // Bind for both user and admin layouts if present
+    bindToggle('themeToggle','themeToggleIcon');
+    bindToggle('adminThemeToggle','adminThemeToggleIcon');
+    // Update across tabs
+    window.addEventListener('storage', function(e){
+      if (e && e.key === 'theme'){
+        var v = e.newValue;
+        if (v === 'light' || v === 'dark'){
+          document.documentElement.setAttribute('data-bs-theme', v);
+          applyMeta(v);
+          // Refresh icons
+          var pairs = [
+            ['themeToggle','themeToggleIcon'],
+            ['adminThemeToggle','adminThemeToggleIcon']
+          ];
+          pairs.forEach(function(p){
+            var b = document.getElementById(p[0]);
+            var i = document.getElementById(p[1]);
+            setIconFor(b,i,v);
+          });
+        }
+      }
+    });
+  })();
+</script>
+

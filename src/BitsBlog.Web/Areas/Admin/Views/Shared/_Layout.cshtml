@@ -71,8 +71,23 @@
                     <button class="btn btn-outline-light btn-sm dropdown-toggle d-flex align-items-center" type="button" id="adminProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Profile menu">
                         <i class="bi bi-person-circle me-1" aria-hidden="true"></i>
                         @(userDisplay ?? "User")
+                        @if (!string.IsNullOrWhiteSpace(userRole))
+                        {
+                            <span class="badge text-bg-warning ms-2">@userRole</span>
+                        }
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminProfileDropdown">
+                        <li>
+                            <a class="dropdown-item" href="/">
+                                <i class="bi bi-house me-2" aria-hidden="true"></i>Go to site
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="/Admin">
+                                <i class="bi bi-speedometer2 me-2" aria-hidden="true"></i>Admin home
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider" /></li>
                         <li>
                             <a class="dropdown-item" href="/Account/Profile">
                                 <i class="bi bi-person me-2" aria-hidden="true"></i>Profile
@@ -90,11 +105,11 @@
                     </ul>
                 </div>
             }
-            <button id="adminThemeToggle" type="button" class="btn btn-outline-light btn-sm" aria-label="Toggle theme" title="Toggle theme">
-                <i id="adminThemeToggleIcon" class="bi" aria-hidden="true"></i>
+            <button id="adminThemeToggle" type="button" class="btn btn-outline-light btn-sm js-theme-toggle" aria-label="Toggle theme" title="Toggle theme">
+                <i id="adminThemeToggleIcon" class="bi js-theme-toggle-icon" aria-hidden="true"></i>
             </button>
           </div>
-        
+
         </div>
       </div>
     </nav>
@@ -107,47 +122,7 @@
 
     <script>window.API_BASE='@apiBase/';</script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-      (function(){
-        var btn = document.getElementById('adminThemeToggle');
-        var icon = document.getElementById('adminThemeToggleIcon');
-        function currentTheme(){
-          return document.documentElement.getAttribute('data-bs-theme') || 'dark';
-        }
-        function setIcon(theme){
-          if (!icon || !btn) return;
-          icon.classList.remove('bi-sun','bi-moon');
-          if (theme === 'dark') {
-            icon.classList.add('bi-sun');
-            btn.setAttribute('aria-label','Switch to light mode');
-            btn.title = 'Switch to light mode';
-          } else {
-            icon.classList.add('bi-moon');
-            btn.setAttribute('aria-label','Switch to dark mode');
-            btn.title = 'Switch to dark mode';
-          }
-        }
-        function toggleTheme(){
-          var next = currentTheme() === 'dark' ? 'light' : 'dark';
-          document.documentElement.setAttribute('data-bs-theme', next);
-          try { localStorage.setItem('theme', next); } catch(e) {}
-          setIcon(next);
-          var metaTheme = document.querySelector('meta[name="theme-color"]');
-          if (metaTheme) metaTheme.setAttribute('content', next === 'dark' ? '#212529' : '#ffffff');
-        }
-        setIcon(currentTheme());
-        if (btn) btn.addEventListener('click', toggleTheme);
-        window.addEventListener('storage', function(e){
-          if (e && e.key === 'theme') {
-            var val = e.newValue;
-            if (val === 'light' || val === 'dark') {
-              document.documentElement.setAttribute('data-bs-theme', val);
-              setIcon(val);
-            }
-          }
-        });
-      })();
-    </script>
+    @await Html.PartialAsync("~/Views/Shared/_ThemeToggleScripts.cshtml")
     @RenderSection("Scripts", required: false)
   </body>
 </html>
